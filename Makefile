@@ -1,6 +1,6 @@
 
 INC := /usr/include/opencv
-LIB := -lcv -lhighgui
+LIB := -lopencv_highgui -lopencv_core
 FLAGS := -g
 
 test: img_test.cpp img_lib.h 
