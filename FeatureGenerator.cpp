@@ -28,18 +28,40 @@ bool NonMaxSupression(Mat m, int x, int y, int nonMaxRadius){
     return true;
 }
 
+<<<<<<< HEAD
 
 vector<pair<int,int> > GenFeature(Mat img,int blockSize = 2, int apertureSize = 3, double k = 0.06, int nonMaxRadius = 3, int thresh = 80.0){
+=======
+vector<pair<int,int> > GenFeature(Mat img,int blockSize = 2, int apertureSize = 3, double k = 0.04, int nonMaxRadius = 3, int upperLimitNormalization = 5000){
+>>>>>>> 19ede47df3b2d33f09989e4a7c49a26f20fdb73e
     // se asume que img esta en escala de grises
     Mat dst = Mat::zeros( img.size(), CV_32FC1 );
     Mat dst_norm, dst_norm_scaled;
     cornerHarris( img, dst, blockSize, apertureSize, k, BORDER_DEFAULT );  
-    normalize( dst, dst_norm, 0, 255, NORM_MINMAX, CV_32FC1, Mat() );
-    convertScaleAbs( dst_norm, dst_norm_scaled );
+    normalize( dst, dst_norm, 0, upperLimitNormalization, NORM_MINMAX, CV_32FC1, Mat() );
+    convertScaleAbs( img, dst_norm_scaled );
+    //seleccionando el Threshold adaptativamente
+    int histogram[upperLimitNormalization + 1];
+    for(int i = 0; i < upperLimitNormalization + 1; i++)
+        histogram[i] = 0;
+    for( int i = 0; i < dst_norm.rows ; i++ )
+        for( int j = 0; j < dst_norm.cols; j++ )
+            histogram[(int)dst_norm.at<float>(i,j)]++;
+    int cumulativesum = 0;
+    int total = dst_norm.rows * dst_norm.cols;
+    int aim = total / 20;
+    int thresh = upperLimitNormalization / 3;
+    for(int i = 0; i < upperLimitNormalization; i++){
+        cumulativesum += histogram[i];
+        if ((total - cumulativesum) <= aim){
+            thresh = i + 1;
+            break;
+        }
+    }
     vector<pair<int,int> > features;    
     for( int i = 0; i < dst_norm.rows ; i++ ){
         for( int j = 0; j < dst_norm.cols; j++ ){
-            if ( NonMaxSupression(dst_norm, i, j, nonMaxRadius) && ( dst_norm.at<float>(i,j) > thresh) ) {
+            if ( NonMaxSupression(dst_norm, i, j, nonMaxRadius) && ( ((int)dst_norm.at<float>(i,j)) >= thresh) ) {
                 features.push_back(make_pair(i,j));
                 circle( dst_norm_scaled, Point( j, i ), 5,  Scalar(0), 2, 8, 0 ); //
             }
