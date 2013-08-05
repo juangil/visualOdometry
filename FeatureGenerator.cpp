@@ -28,12 +28,8 @@ bool NonMaxSupression(Mat m, int x, int y, int nonMaxRadius){
     return true;
 }
 
-<<<<<<< HEAD
 
-vector<pair<int,int> > GenFeature(Mat img,int blockSize = 2, int apertureSize = 3, double k = 0.06, int nonMaxRadius = 3, int thresh = 80.0){
-=======
 vector<pair<int,int> > GenFeature(Mat img,int blockSize = 2, int apertureSize = 3, double k = 0.04, int nonMaxRadius = 3, int upperLimitNormalization = 5000){
->>>>>>> 19ede47df3b2d33f09989e4a7c49a26f20fdb73e
     // se asume que img esta en escala de grises
     Mat dst = Mat::zeros( img.size(), CV_32FC1 );
     Mat dst_norm, dst_norm_scaled;
