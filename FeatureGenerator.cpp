@@ -6,8 +6,6 @@
 #include <stdlib.h>
 #include <vector>
 
-
-
 using namespace std;
 using namespace cv;
 
@@ -28,7 +26,6 @@ bool NonMaxSupression(Mat m, int x, int y, int nonMaxRadius){
     return true;
 }
 
-
 vector<pair<int,int> > GenFeature(Mat img,int blockSize = 2, int apertureSize = 3, double k = 0.04, int nonMaxRadius = 3, int upperLimitNormalization = 5000){
     // se asume que img esta en escala de grises
     Mat dst = Mat::zeros( img.size(), CV_32FC1 );
@@ -45,7 +42,7 @@ vector<pair<int,int> > GenFeature(Mat img,int blockSize = 2, int apertureSize = 
             histogram[(int)dst_norm.at<float>(i,j)]++;
     int cumulativesum = 0;
     int total = dst_norm.rows * dst_norm.cols;
-    int aim = total / 20;
+    int aim = total / 5; // Este parametro es fundamental para ajustar el numero de caracteristicas obtenidas al final.
     int thresh = upperLimitNormalization / 3;
     for(int i = 0; i < upperLimitNormalization; i++){
         cumulativesum += histogram[i];
@@ -57,7 +54,7 @@ vector<pair<int,int> > GenFeature(Mat img,int blockSize = 2, int apertureSize = 
     vector<pair<int,int> > features;    
     for( int i = 0; i < dst_norm.rows ; i++ ){
         for( int j = 0; j < dst_norm.cols; j++ ){
-            if ( NonMaxSupression(dst_norm, i, j, nonMaxRadius) && ( ((int)dst_norm.at<float>(i,j)) >= thresh) ) {
+            if ( NonMaxSupression(dst_norm, i, j, nonMaxRadius) &&  ( ((int)dst_norm.at<float>(i,j)) >= thresh) ) {
                 features.push_back(make_pair(i,j));
                 circle( dst_norm_scaled, Point( j, i ), 5,  Scalar(0), 2, 8, 0 ); //
             }
