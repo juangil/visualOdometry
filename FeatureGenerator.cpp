@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
-#include <sstream>
 
 using namespace std;
 using namespace cv;
@@ -65,35 +64,21 @@ vector<pair<int,int> > GenFeature(Mat img,int blockSize = 2, int apertureSize = 
     return features;
 }
 
-string convertInt(int number)
-{
-   stringstream ss;//create a stringstream
-   ss << number;//add number to the stream
-   return ss.str();//return a string with the contents of the stream
-}
-
-int main(){//int argc, char** argv){
+int main(int argc, char** argv){
     Mat image, image_gray;
-    /*if( argc != 2){
+    if( argc != 2){
      cout <<"Pasar el nombre de la imagen" << endl;
      return -1;
-    }*/
-    //namedWindow("ventana",1);//
-    
-    for(int i = 0; i <= 1; ++i){
-          string frame = "I1_000";//convertInt(0);
-          string num = convertInt(i);
-          if(num.size() == 1) num = "00"+num;
-          else if(num.size() == 2) num = "0"+num; 
-          frame = frame+num+".jpg";    
-          //cout<<frame<<endl;
-          image = imread(frame);//, CV_LOAD_IMAGE_GRAYSCALE);//, CV_LOAD_IMAGE_COLOR);
-          //cvtColor( image, image_gray, CV_BGR2GRAY );
-          vector<pair<int,int> > fts = GenFeature(image_gray);
-          //namedWindow("edges",1);
-          imwrite(num+".jpg", db);
-          //cout<<fts.size()<<endl;
-          //waitKey(0);
     }
+    namedWindow("ventana",1);//
+    image = imread(argv[1], CV_LOAD_IMAGE_COLOR);
+    cvtColor( image, image_gray, CV_BGR2GRAY );
+    vector<pair<int,int> > fts = GenFeature(image_gray);
+    namedWindow("edges",1);
+    imshow("edges", db);
+    cout<<fts.size()<<endl;
+    waitKey(0);
+    //for(int i = 0; i < fts.size(); ++i) cout<< fts[i] << end;
+    //
     return 0;
 }
