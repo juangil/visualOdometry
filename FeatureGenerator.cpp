@@ -126,21 +126,33 @@ vector<pair<int,int> > harrisFeatureMatcherMCC(Mat img1, Mat img2, vector< pair<
 
 /*end Matching*/
 
+void debugging(Mat img1, Mat img2,  vector<pair<int,int> > &fts1,  vector<pair<int,int> > &fts2, vector< pair<int,int> > correspondences){
+     return;
+}
+
 int main(int argc, char** argv){
-    Mat image, image_gray;
-    if( argc != 2){
+    Mat img1, img2, imgray1, imgray2;
+    if( argc != 3){
      cout <<"Pasar el nombre de la imagen" << endl;
      return -1;
     }
     namedWindow("ventana",1);//
-    image = imread(argv[1], CV_LOAD_IMAGE_COLOR);
-    cvtColor( image, image_gray, CV_BGR2GRAY );
-    vector<pair<int,int> > fts = GenFeature(image_gray);
-    namedWindow("edges",1);
+    img1 = imread(argv[1], CV_LOAD_IMAGE_COLOR);
+    img2 = imread(argv[2], CV_LOAD_IMAGE_COLOR);
+    
+    cvtColor( img1, imgray1, CV_BGR2GRAY );
+    cvtColor( img2, imgray2, CV_BGR2GRAY );
+    vector<pair<int,int> > fts1 = GenFeature(imgray1);
+    vector<pair<int,int> > fts2 = GenFeature(imgray2);
+    cout<<"cantidad características imagen 1: "<<fts1.size()<<" cantidad características imagen 2: "<<fts2.size()<<endl;    
+    //namedWindow("edges",1);
     //imshow("edges", db);
-    cout<<fts.size()<<endl;
-    waitKey(0);
+    //cout<<fts.size()<<endl;
+    //waitKey(0);
     //for(int i = 0; i < fts.size(); ++i) cout<< fts[i] << end;
-    //
+    vector< pair<int,int> > correspondences = harrisFeatureMatcherMCC(img1, img2, fts1, fts2);
+    debugging(img1, img2, fts1, fts2, correspondences);
+    cout<<correspondences.size()<<endl;
+    
     return 0;
 }
