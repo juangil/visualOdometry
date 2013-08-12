@@ -5,15 +5,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <cmath>
-
 #include <vector>
 
 using namespace std;
 using namespace cv;
 
-
-
-Mat db;    
+const int MAX_INT = 1<<30;
+   
 
 bool NonMaxSupression(Mat m, int x, int y, int nonMaxRadius){
     for(int i = -nonMaxRadius;  i <= nonMaxRadius; i++)
@@ -62,7 +60,7 @@ vector<pair<int,int> > GenFeature(Mat img,int blockSize = 2, int apertureSize = 
             }
         }
     }
-    db = dst_norm_scaled;
+   // db = dst_norm_scaled;
     return features;
 }
 
@@ -139,7 +137,7 @@ int main(int argc, char** argv){
     cvtColor( image, image_gray, CV_BGR2GRAY );
     vector<pair<int,int> > fts = GenFeature(image_gray);
     namedWindow("edges",1);
-    imshow("edges", db);
+    //imshow("edges", db);
     cout<<fts.size()<<endl;
     waitKey(0);
     //for(int i = 0; i < fts.size(); ++i) cout<< fts[i] << end;
