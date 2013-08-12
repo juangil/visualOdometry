@@ -124,11 +124,30 @@ vector<pair<int,int> > harrisFeatureMatcherMCC(Mat img1, Mat img2, vector< pair<
     return correspondences;
 }
 
-/*end Matching*/
+//debugging matching
 
 void debugging(Mat img1, Mat img2,  vector<pair<int,int> > &fts1,  vector<pair<int,int> > &fts2, vector< pair<int,int> > correspondences){
-     return;
+     Mat new_image;
+     new_image.create(img1.rows *2, img1.cols, img1.type());
+     for(int i = 0; i < img1.rows; i++)
+        for(int j = 0; j < img1.cols; j++)
+            new_image.at<int>(i,j) = img2.at<int>(i, j);
+     for(int i = img1.rows; i < img1.rows*2; i++)
+        for(int j = 0; j < img1.cols; j++)
+            new_image.at<int>(i, j) = img1.at<int>(i - img2.rows, j);
+     /*namedWindow("ventana",1);
+     imshow("ventana", img1);
+     waitKey(0);
+     imshow("ventana", img2);
+     waitKey(0);*/
+     namedWindow("ventana2",1);
+     imshow("ventana2", new_image);
+     waitKey(0);
 }
+
+/*end Matching*/
+
+
 
 int main(int argc, char** argv){
     Mat img1, img2, imgray1, imgray2;
@@ -138,8 +157,7 @@ int main(int argc, char** argv){
     }
     namedWindow("ventana",1);//
     img1 = imread(argv[1], CV_LOAD_IMAGE_COLOR);
-    img2 = imread(argv[2], CV_LOAD_IMAGE_COLOR);
-    
+    img2 = imread(argv[2], CV_LOAD_IMAGE_COLOR);   
     cvtColor( img1, imgray1, CV_BGR2GRAY );
     cvtColor( img2, imgray2, CV_BGR2GRAY );
     vector<pair<int,int> > fts1 = GenFeature(imgray1);
@@ -151,8 +169,7 @@ int main(int argc, char** argv){
     //waitKey(0);
     //for(int i = 0; i < fts.size(); ++i) cout<< fts[i] << end;
     vector< pair<int,int> > correspondences = harrisFeatureMatcherMCC(img1, img2, fts1, fts2);
-    debugging(img1, img2, fts1, fts2, correspondences);
+    debugging(imgray1, imgray2, fts1, fts2, correspondences);
     cout<<correspondences.size()<<endl;
-    
     return 0;
 }
