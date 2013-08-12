@@ -4,6 +4,8 @@
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <cmath>
+
 #include <vector>
 
 using namespace std;
@@ -30,7 +32,7 @@ vector<pair<int,int> > GenFeature(Mat img,int blockSize = 2, int apertureSize = 
     // se asume que img esta en escala de grises
     Mat dst = Mat::zeros( img.size(), CV_32FC1 );
     Mat dst_norm, dst_norm_scaled;
-    cornerHarris( img, dst, blockSize, apertureSize, k, BORDER_DEFAULT );  
+    cornerHarris( img, dst, blockSize, apertureSize, k, BORDER_DEFAULT );
     normalize( dst, dst_norm, 0, upperLimitNormalization, NORM_MINMAX, CV_32FC1, Mat() );
     convertScaleAbs( img, dst_norm_scaled );
     //seleccionando el Threshold adaptativamente
@@ -63,6 +65,68 @@ vector<pair<int,int> > GenFeature(Mat img,int blockSize = 2, int apertureSize = 
     db = dst_norm_scaled;
     return features;
 }
+
+/*Matching*/
+
+int SumofAbsoluteDifferences(Mat img1, Mat img2, pair<int,int> f1, pair<int,int> f2, int w = 2){
+    if ( (img1.rows != img2.rows ) || (img1.cols != img2.cols)){
+        printf("Las dimensiones de las imagenes no coinciden");
+        return 0;
+    }
+    int limitx = img1.rows;
+    int limity = img1.cols;
+    int response = 0;
+    for(int i = -w; i <= w; i++){
+        for(int j = -w; j <= w; j++){
+            int nx1 = f1.first + i;
+            int ny1 = f1.second + j;
+            int nx2 = f2.first + i;
+            int ny2 = f2.second + j;
+            bool c1 = (nx1 < 0 || ny1 < 0 || nx2 < 0 || ny2 < 0);
+            bool c2 = (nx1 >= limitx || ny1 >= limity || nx2 >= limitx || ny2 >= limity);
+            if (c1 || c2) continue;
+            response += abs((img1.at<int>(nx1,ny1) - img2.at<int>(nx2,ny2)));   
+        }
+    }
+    return response;
+}
+
+
+void DeterminingFavorites(Mat img1, Mat img2, vector< pair<int,int> > &f1, vector< pair<int,int> > &f2, int *favorites, int delta = 8){
+    for(int i = 0; i < f1.size(); i++){
+        pair<int, int> current1 = f1[i];
+        int menor = MAX_INT;
+        int idMenor = -1;
+        for(int j = 0; j < f2.size(); j++){
+            pair<int, int> current2 = f2[j];
+            int dx = abs(current1.first - current2.first);
+            int dy = abs(current1.second - current2.second);
+            if(dx > delta || dy > delta) continue;
+            int similarity = SumofAbsoluteDifferences(img1, img2, current1, current2);
+            if(similarity < menor){
+                menor = similarity;
+                idMenor = j;
+            } 
+        }
+        favorites[i] = idMenor;
+    }
+    return;
+}
+
+
+vector<pair<int,int> > harrisFeatureMatcherMCC(Mat img1, Mat img2, vector< pair<int,int> > featuresImg1, vector< pair<int,int> > featuresImg2){
+    int favoritesfromimg1[featuresImg1.size()]; // en la posicion i se guarda el favorito de la característica i de la imagen 1.
+    int favoritesfromimg2[featuresImg2.size()]; // en la posicion i se guarda el favorito de la característica i de la imagen 2.
+    vector< pair<int,int> > correspondences;
+    DeterminingFavorites(img1, img2, featuresImg1, featuresImg2, favoritesfromimg1);
+    DeterminingFavorites(img2, img1, featuresImg2, featuresImg1, favoritesfromimg2);
+    for(int i = 0; i < featuresImg1.size(); ++i){
+        if(favoritesfromimg2[favoritesfromimg1[i]] == i) correspondences.push_back(make_pair(i, favoritesfromimg1[i]));
+    }
+    return correspondences;
+}
+
+/*end Matching*/
 
 int main(int argc, char** argv){
     Mat image, image_gray;
