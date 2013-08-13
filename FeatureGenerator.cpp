@@ -26,7 +26,7 @@ bool NonMaxSupression(Mat m, int x, int y, int nonMaxRadius){
     return true;
 }
 
-vector<pair<int,int> > GenFeature(Mat img,int blockSize = 2, int apertureSize = 3, double k = 0.04, int nonMaxRadius = 3, int upperLimitNormalization = 5000){
+vector<pair<int,int> > GenFeature(Mat img,int blockSize = 2, int apertureSize = 3, double k = 0.04, int nonMaxRadius = 11, int upperLimitNormalization = 5000){
     // se asume que img esta en escala de grises
     Mat dst = Mat::zeros( img.size(), CV_32FC1 );
     Mat dst_norm, dst_norm_scaled;
@@ -66,7 +66,7 @@ vector<pair<int,int> > GenFeature(Mat img,int blockSize = 2, int apertureSize = 
 
 /*Matching*/
 
-int SumofAbsoluteDifferences(Mat img1, Mat img2, pair<int,int> f1, pair<int,int> f2, int w = 5){
+int SumofAbsoluteDifferences(Mat img1, Mat img2, pair<int,int> f1, pair<int,int> f2, int w = 10){
     if ( (img1.rows != img2.rows ) || (img1.cols != img2.cols)){
         printf("Las dimensiones de las imagenes no coinciden");
         return 0;
@@ -83,14 +83,15 @@ int SumofAbsoluteDifferences(Mat img1, Mat img2, pair<int,int> f1, pair<int,int>
             bool c1 = (nx1 < 0 || ny1 < 0 || nx2 < 0 || ny2 < 0);
             bool c2 = (nx1 >= limitx || ny1 >= limity || nx2 >= limitx || ny2 >= limity);
             if (c1 || c2) continue;
-            response += abs((img1.at<int>(nx1,ny1) - img2.at<int>(nx2,ny2)));   
+            response += abs(img1.at<int>(nx1,ny1) - img2.at<int>(nx2,ny2));   
         }
     }
     return response;
 }
 
+     
 
-void DeterminingFavorites(Mat img1, Mat img2, vector< pair<int,int> > &f1, vector< pair<int,int> > &f2, int *favorites, int delta = 8){
+void DeterminingFavorites(Mat img1, Mat img2, vector< pair<int,int> > &f1, vector< pair<int,int> > &f2, int *favorites, int delta = 10){
     for(int i = 0; i < f1.size(); i++){
         pair<int, int> current1 = f1[i];
         int menor = MAX_INT;
@@ -127,28 +128,34 @@ vector<pair<int,int> > harrisFeatureMatcherMCC(Mat img1, Mat img2, vector< pair<
 /*end Matching*/
 
 void debugging(Mat img1, Mat img2,  vector<pair<int,int> > &fts1,  vector<pair<int,int> > &fts2, vector< pair<int,int> > correspondences){
-
      Mat new_image;
      new_image.create(img1.rows *2, img1.cols, img1.type());
-     for(int i = 0; i < img1.rows; i++)
+     for(int i = 0; i < img1.rows; i++){
         for(int j = 0; j < img1.cols; j++)
             new_image.at<int>(i,j) = img2.at<int>(i, j);
-     for(int i = img1.rows; i < img1.rows*2; i++)
+     }
+     for(int i = img1.rows; i < img1.rows*2; i++){
         for(int j = 0; j < img1.cols; j++)
             new_image.at<int>(i, j) = img1.at<int>(i - img2.rows, j);
-      namedWindow("correspondences",1);
+     }
+     
+     namedWindow("correspondences",1);
+     int buenas = 0;
      for(int i = 0; i < correspondences.size(); i++){
           pair<int,int> feature1 = fts1[correspondences[i].first];
           pair<int,int> feature2 = fts2[correspondences[i].second];
+          //Point p1(feature1.second, feature1.first);
           Point p1(feature1.second, feature1.first);
           Point p2(feature2.second, feature2.first + img1.rows); 
+          if(feature1.second == feature2.second) buenas += 1;
           Scalar color(25.0);
           circle(new_image, p1, 5, color, 2);
           circle(new_image, p2, 5, color, 2);
           line(new_image, p1, p2, color);
           imshow("correspondences", new_image);
-          waitKey(0);
+          waitKey(0);     
      }
+     //cout<<"buenas: "<<buenas<<" malas: "<<correspondences.size() - buenas<<endl;
      return;
 }
 
@@ -172,8 +179,8 @@ int main(int argc, char** argv){
     //cout<<fts.size()<<endl;
     //waitKey(0);
     //for(int i = 0; i < fts.size(); ++i) cout<< fts[i] << end;
-    vector< pair<int,int> > correspondences = harrisFeatureMatcherMCC(img1, img2, fts1, fts2);
-    debugging(img1, img2, fts1, fts2, correspondences);
+    vector< pair<int,int> > correspondences = harrisFeatureMatcherMCC(imgray1, imgray2, fts1, fts2);
+    debugging(imgray1, imgray2, fts1, fts2, correspondences);
     //cout<<correspondences.size()<<endl;
     
     return 0;
