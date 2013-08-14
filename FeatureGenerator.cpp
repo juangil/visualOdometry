@@ -26,7 +26,7 @@ bool NonMaxSupression(Mat m, int x, int y, int nonMaxRadius){
     return true;
 }
 
-vector<pair<int,int> > GenFeature(Mat img,int blockSize = 2, int apertureSize = 3, double k = 0.04, int nonMaxRadius = 11, int upperLimitNormalization = 5000){
+vector<pair<int,int> > GenFeature(Mat img,int blockSize = 2, int apertureSize = 3, double k = 0.04, int nonMaxRadius = 8, int upperLimitNormalization = 5000){
     // se asume que img esta en escala de grises
     Mat dst = Mat::zeros( img.size(), CV_32FC1 );
     Mat dst_norm, dst_norm_scaled;
@@ -42,7 +42,7 @@ vector<pair<int,int> > GenFeature(Mat img,int blockSize = 2, int apertureSize = 
             histogram[(int)dst_norm.at<float>(i,j)]++;
     int cumulativesum = 0;
     int total = dst_norm.rows * dst_norm.cols;
-    int aim = total / 5; // Este parametro es fundamental para ajustar el numero de caracteristicas obtenidas al final.
+    int aim = 7*(total / 10); // Este parametro es fundamental para ajustar el numero de caracteristicas obtenidas al final.
     int thresh = upperLimitNormalization / 3;
     for(int i = 0; i < upperLimitNormalization; i++){
         cumulativesum += histogram[i];
@@ -91,7 +91,7 @@ int SumofAbsoluteDifferences(Mat img1, Mat img2, pair<int,int> f1, pair<int,int>
 
      
 
-void DeterminingFavorites(Mat img1, Mat img2, vector< pair<int,int> > &f1, vector< pair<int,int> > &f2, int *favorites, int delta = 10){
+void DeterminingFavorites(Mat img1, Mat img2, vector< pair<int,int> > &f1, vector< pair<int,int> > &f2, int *favorites, int delta = 15){
     for(int i = 0; i < f1.size(); i++){
         pair<int, int> current1 = f1[i];
         int menor = MAX_INT;
@@ -155,7 +155,7 @@ void debugging(Mat img1, Mat img2,  vector<pair<int,int> > &fts1,  vector<pair<i
           imshow("correspondences", new_image);
           waitKey(0);     
      }
-     //cout<<"buenas: "<<buenas<<" malas: "<<correspondences.size() - buenas<<endl;
+     cout<<"buenas: "<<buenas<<" malas: "<<correspondences.size() - buenas<<endl;
      return;
 }
 
