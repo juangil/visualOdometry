@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <cmath>
 #include <vector>
+#include <set>
 
 using namespace std;
 using namespace cv;
@@ -64,9 +65,60 @@ vector<pair<int,int> > GenFeature(Mat img,int blockSize = 2, int apertureSize = 
     return features;
 }
 
+
+struct MyKeyPoint{
+    pair<int,int> coord;
+    float cornerness;
+    MyKeyPoint(){}
+    MyKeyPoint(pair<int,int> c, float m){coord = c; cornerness = m;}
+    ~MyKeyPoint() {}
+    bool operator <(const MyKeyPoint &other) const {
+        return cornerness > other.cornerness;
+    }
+};
+
+
+
+vector<pair<int,int> > GenFeature2(Mat img,int blockSize = 2, int apertureSize = 3, double k = 0.04, int nonMaxRadius = 3, int amount = 3000, int upperLimitNormalization = 5000){
+    // se asume que img esta en escala de grises
+    Mat dst = Mat::zeros( img.size(), CV_32FC1 );
+    cornerHarris( img, dst, blockSize, apertureSize, k, BORDER_DEFAULT );
+    Mat dst_norm;
+    normalize( dst, dst_norm, 0, upperLimitNormalization, NORM_MINMAX, CV_32FC1, Mat() );
+    //cout << dst_norm << endl;
+    set<MyKeyPoint> data_structure;
+    MyKeyPoint worst;
+    for( int i = 0; i < dst_norm.rows; i++ ){
+        for( int j = 0; j < dst_norm.cols; j++ ){
+            if ( NonMaxSupression(dst, i, j, nonMaxRadius)) {
+                float c = dst_norm.at<float>(i, j);
+                MyKeyPoint current(make_pair(i,j), c);
+                if (data_structure.size() < amount){
+                    data_structure.insert(current);
+                }
+                else{
+                    set<MyKeyPoint>::iterator it = data_structure.end();
+                    --it;
+                    worst = *it;
+                    if (current.cornerness > worst.cornerness){
+                        data_structure.erase(worst);
+                        data_structure.insert(current);
+                    }
+                }
+            }
+        }
+    }
+    vector<pair<int, int> > features;
+    for(set<MyKeyPoint>::iterator it = data_structure.begin(); it != data_structure.end(); ++it){
+        features.push_back((*it).coord);
+        cout<<(*it).cornerness<<endl;
+    } 
+    return features;
+}
+
 /*Matching*/
 
-int SumofAbsoluteDifferences(Mat img1, Mat img2, pair<int,int> f1, pair<int,int> f2, int w = 5){
+int SumofAbsoluteDifferences(Mat img1, Mat img2, pair<int,int> f1, pair<int,int> f2, int w = 10){
     if ( (img1.rows != img2.rows ) || (img1.cols != img2.cols)){
         printf("Las dimensiones de las imagenes no coinciden");
         return 0;
@@ -164,8 +216,8 @@ int main(int argc, char** argv){
     
     cvtColor( img1, imgray1, CV_BGR2GRAY );
     cvtColor( img2, imgray2, CV_BGR2GRAY );
-    vector<pair<int,int> > fts1 = GenFeature(imgray1);
-    vector<pair<int,int> > fts2 = GenFeature(imgray2);
+    vector<pair<int,int> > fts1 = GenFeature2(imgray1);
+    vector<pair<int,int> > fts2 = GenFeature2(imgray2);
     cout<<"cantidad características imagen 1: "<<fts1.size()<<" cantidad características imagen 2: "<<fts2.size()<<endl;    
     //namedWindow("edges",1);
     //imshow("edges", db);
