@@ -7,8 +7,12 @@
 #include <cmath>
 #include <vector>
 #include <set>
+<<<<<<< HEAD
 #include <string>
 #include <sstream>
+=======
+#include <algorithm>
+>>>>>>> ab8f12ce1250a62acf315c10a29e8b9d3a22c32f
 
 using namespace std;
 using namespace cv;
@@ -87,7 +91,7 @@ struct MyKeyPoint{
 
 
 
-vector<pair<int,int> > GenFeature2(Mat img,int blockSize = 2, int apertureSize = 3, double k = 0.04, int nonMaxRadius = 3, int amount = 3000, int upperLimitNormalization = 5000){
+vector<pair<int,int> > GenFeature2(Mat img,int blockSize = 2, int apertureSize = 3, double k = 0.04, int nonMaxRadius = 2, int amount = 3000, int upperLimitNormalization = 10000){
     // se asume que img esta en escala de grises
     Mat dst = Mat::zeros( img.size(), CV_32FC1 );
     cornerHarris( img, dst, blockSize, apertureSize, k, BORDER_DEFAULT );
@@ -99,8 +103,10 @@ vector<pair<int,int> > GenFeature2(Mat img,int blockSize = 2, int apertureSize =
     for( int i = 0; i < dst_norm.rows; i++ ){
         for( int j = 0; j < dst_norm.cols; j++ ){
             if ( NonMaxSupression(dst, i, j, nonMaxRadius)) {
+                
                 float c = dst_norm.at<float>(i, j);
                 MyKeyPoint current(make_pair(i,j), c);
+                /*
                 if (data_structure.size() < amount){
                     data_structure.insert(current);
                 }
@@ -112,14 +118,15 @@ vector<pair<int,int> > GenFeature2(Mat img,int blockSize = 2, int apertureSize =
                         data_structure.erase(worst);
                         data_structure.insert(current);
                     }
-                }
+                }*/
+                data_structure.insert(current);
             }
         }
     }
     vector<pair<int, int> > features;
     for(set<MyKeyPoint>::iterator it = data_structure.begin(); it != data_structure.end(); ++it){
         features.push_back((*it).coord);
-        cout<<(*it).cornerness<<endl;
+        //cout<<(*it).cornerness<<endl;
     } 
     return features;
 }
@@ -244,8 +251,8 @@ int main(int argc, char** argv){
     //waitKey(0);
     //for(int i = 0; i < fts.size(); ++i) cout<< fts[i] << end;
     vector< pair<int,int> > correspondences = harrisFeatureMatcherMCC(imgray1, imgray2, fts1, fts2);
+    cout <<"cantidad de correspondencias " << correspondences.size() << endl;
     debugging(imgray1, imgray2, fts1, fts2, correspondences);
-    //cout<<correspondences.size()<<endl;
-    
     return 0;
 }
+
