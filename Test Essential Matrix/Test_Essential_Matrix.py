@@ -5,6 +5,7 @@ import sys
 from math import sqrt
 from numpy import *
 
+EPS = 1e-10
 
 def dot_product(a, b):
     ret = 0
@@ -47,14 +48,14 @@ def normalize(vector):
 	###	return p2_p1.multbyscalar(ua).add(p1);
 ###	}
 	
-def intersetionbtwlines(p1, p2, p3, p4):
+def intersectionbtwlines(p1, p2, p3, p4):
     p2_p1 = res(p2,p1)
     p4_p3 = res(p4,p3)
-    den = cross_product(p2_p1, p4_p3)
-    if(abs(den) < eps):## the lines are parallel or coincident
+    den = cross_product(p2_p1, p4_p3)[2]
+    if(abs(den) < EPS):## the lines are parallel or coincident
         return None
     p1_p3 = res(p1,p3)
-    num = cross_product(p4_p3, p1_p3)
+    num = cross_product(p4_p3, p1_p3)[2]
     ua = num/den
     return sumv(multbyscalar(p2_p1,ua), p1)
 
@@ -120,7 +121,7 @@ plusZ = normalize(plusZ)
 plusY = normalize(plusY)
 plusX = normalize(plusX)
 
-EPS = 1e-10
+
 
 
 if ( (abs(dot(plusZ, plusY))>EPS) or (abs(dot(plusZ, plusX))>EPS) or (abs(dot(plusY, plusX))>EPS) ):
@@ -143,11 +144,26 @@ print "first:", projection_on_first_camera
 print "second:", projection_on_second_camera
 
 
-def triangul(a,b,c,d):
-    for i in range(0,7):
-        print "point in first pr",a[i],"point in second pr", b[i],"expected", points[i],"intersection", intersectionbtwlines([0,0,0], a[i], centerOfProjection, b[i])
+def test_triangulate():
+    array = []
+    for i in range(0,8):
+        proj1 = projection_on_first_camera[i]
+        proj2 = projection_on_second_camera[i]
+        p1 = [0,0,0]
+        p2 = proj1
+        p3 = centerOfProjection
+        p4 = multbyscalar(plusX,proj2[0])
+        p4 = sumv(p4, multbyscalar(plusY,proj2[1]))
+        p4 = sumv(p4, multbyscalar(plusZ,proj2[2]))
+        p4 = sumv(p4, centerOfProjection)
+        print p1,p2,p3,p4
+        array.append(intersectionbtwlines(p1, p2, p3, p4))
+    print "==="
+    print array
     
+            
     
+test_triangulate()
 
 
 
