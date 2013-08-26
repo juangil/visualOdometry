@@ -34,10 +34,31 @@ def multbyscalar(a,b):
 def normalize(vector): 
     return multbyscalar(vector, 1.0 / norm(vector))
     
+    
+###static point intersectionbtwlines(point p1,point p2,point p3,point p4){
+	###	point p2_p1=p2.sub(p1);
+	###	point p4_p3=p4.sub(p3);
+	###	double den=p2_p1.cross(p4_p3);
+	###	if (Math.abs(den)<eps)//the lines are parallel or coincident
+		###	return null;
+	###	point p1_p3=p1.sub(p3);
+	###	double num=p4_p3.cross(p1_p3);
+	###	double ua=num/den;
+	###	return p2_p1.multbyscalar(ua).add(p1);
+###	}
+	
+def intersetionbtwlines(p1, p2, p3, p4):
+    p2_p1 = res(p2,p1)
+    p4_p3 = res(p4,p3)
+    den = cross_product(p2_p1, p4_p3)
+    if(abs(den) < eps):## the lines are parallel or coincident
+        return None
+    p1_p3 = res(p1,p3)
+    num = cross_product(p4_p3, p1_p3)
+    ua = num/den
+    return sumv(multbyscalar(p2_p1,ua), p1)
 
     
-    
-
 argumentos = sys.argv
 
 #se asume la distancia focal de 1
@@ -67,7 +88,7 @@ if (len(points) < 8):
 # vector del +y = (0, 1, 0)
 
 
-# de aca en adelante se asume que el vector +x esta en +z cross +y  ((1,0,0) para la camara 1)
+# de aca en adelante se asume que el vector +x esta en  +y  cross +z  ((1,0,0) para la camara 1)
 
     
 projection_on_first_camera = []
@@ -101,7 +122,8 @@ plusX = normalize(plusX)
 
 EPS = 1e-10
 
-if ( (dot(plusZ, plusY)>EPS) or (dot(plusZ, plusX)>EPS) or (dot(plusY, plusX)>EPS) ):
+
+if ( (abs(dot(plusZ, plusY))>EPS) or (abs(dot(plusZ, plusX))>EPS) or (abs(dot(plusY, plusX))>EPS) ):
     print "Los vectores base del sistema de coordenadas de la camara 2 no son ortogonales"
     
 # projectando los puntos sobre la segunda camara.
@@ -111,18 +133,21 @@ projection_on_second_camera = []
 for p in points:
     t = res(p, centerOfProjection)
     pp = [dot(t, plusX), dot(t, plusY), dot(t, plusZ)]
-    print pp
     if (pp[2] < 1.5):
         print "los puntos debe estar en frente de la camara 2"
         sys.exit()
     np = [pp[0] / pp[2], pp[1] / pp[2], 1]
-    projection_on_second_camera.append(np)
+    projection_on_second_camera.append(np)  
     
-    
-print "============"    
-    
-print projection_on_second_camera
+print "first:", projection_on_first_camera
+print "second:", projection_on_second_camera
 
+
+def triangul(a,b,c,d):
+    for i in range(0,7):
+        print "point in first pr",a[i],"point in second pr", b[i],"expected", points[i],"intersection", intersectionbtwlines([0,0,0], a[i], centerOfProjection, b[i])
+    
+    
 
 
 
