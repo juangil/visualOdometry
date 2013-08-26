@@ -6,21 +6,12 @@
 #include <stdlib.h>
 #include <cmath>
 #include <vector>
-#include <set>
-#include <string>
-#include <sstream>
 
 using namespace std;
 using namespace cv;
 
 const int MAX_INT = 1<<30;
-
-string toString(int a){
-     stringstream ss;
-     ss << a;
-     return ss.str();
-}
-     
+   
 
 bool NonMaxSupression(Mat m, int x, int y, int nonMaxRadius){
     for(int i = -nonMaxRadius;  i <= nonMaxRadius; i++)
@@ -70,57 +61,6 @@ vector<pair<int,int> > GenFeature(Mat img,int blockSize = 2, int apertureSize = 
         }
     }
    // db = dst_norm_scaled;
-    return features;
-}
-
-
-struct MyKeyPoint{
-    pair<int,int> coord;
-    float cornerness;
-    MyKeyPoint(){}
-    MyKeyPoint(pair<int,int> c, float m){coord = c; cornerness = m;}
-    ~MyKeyPoint() {}
-    bool operator <(const MyKeyPoint &other) const {
-        return cornerness > other.cornerness;
-    }
-};
-
-
-
-vector<pair<int,int> > GenFeature2(Mat img,int blockSize = 2, int apertureSize = 3, double k = 0.04, int nonMaxRadius = 3, int amount = 3000, int upperLimitNormalization = 5000){
-    // se asume que img esta en escala de grises
-    Mat dst = Mat::zeros( img.size(), CV_32FC1 );
-    cornerHarris( img, dst, blockSize, apertureSize, k, BORDER_DEFAULT );
-    Mat dst_norm;
-    normalize( dst, dst_norm, 0, upperLimitNormalization, NORM_MINMAX, CV_32FC1, Mat() );
-    //cout << dst_norm << endl;
-    set<MyKeyPoint> data_structure;
-    MyKeyPoint worst;
-    for( int i = 0; i < dst_norm.rows; i++ ){
-        for( int j = 0; j < dst_norm.cols; j++ ){
-            if ( NonMaxSupression(dst, i, j, nonMaxRadius)) {
-                float c = dst_norm.at<float>(i, j);
-                MyKeyPoint current(make_pair(i,j), c);
-                if (data_structure.size() < amount){
-                    data_structure.insert(current);
-                }
-                else{
-                    set<MyKeyPoint>::iterator it = data_structure.end();
-                    --it;
-                    worst = *it;
-                    if (current.cornerness > worst.cornerness){
-                        data_structure.erase(worst);
-                        data_structure.insert(current);
-                    }
-                }
-            }
-        }
-    }
-    vector<pair<int, int> > features;
-    for(set<MyKeyPoint>::iterator it = data_structure.begin(); it != data_structure.end(); ++it){
-        features.push_back((*it).coord);
-        cout<<(*it).cornerness<<endl;
-    } 
     return features;
 }
 
@@ -199,7 +139,7 @@ void debugging(Mat img1, Mat img2,  vector<pair<int,int> > &fts1,  vector<pair<i
             new_image.at<int>(i, j) = img1.at<int>(i - img2.rows, j);
      }
      
-     //namedWindow("correspondences",1);
+     namedWindow("correspondences",1);
      int buenas = 0;
      for(int i = 0; i < correspondences.size(); i++){
           pair<int,int> feature1 = fts1[correspondences[i].first];
@@ -212,14 +152,10 @@ void debugging(Mat img1, Mat img2,  vector<pair<int,int> > &fts1,  vector<pair<i
           circle(new_image, p1, 5, color, 2);
           circle(new_image, p2, 5, color, 2);
           line(new_image, p1, p2, color);
-          string num = toString(i);
-          imwrite("new_image"+num+".jpg", new_image);
-          if(i == 20) break;
-          //imshow("correspondences", new_image);
-          //waitKey(0);     
+          imshow("correspondences", new_image);
+          waitKey(0);     
      }
-     imwrite("new_image.jpg", new_image);
-     //cout<<"buenas: "<<buenas<<" malas: "<<correspondences.size() - buenas<<endl;
+     cout<<"buenas: "<<buenas<<" malas: "<<correspondences.size() - buenas<<endl;
      return;
 }
 
@@ -235,8 +171,8 @@ int main(int argc, char** argv){
     
     cvtColor( img1, imgray1, CV_BGR2GRAY );
     cvtColor( img2, imgray2, CV_BGR2GRAY );
-    vector<pair<int,int> > fts1 = GenFeature2(imgray1);
-    vector<pair<int,int> > fts2 = GenFeature2(imgray2);
+    vector<pair<int,int> > fts1 = GenFeature(imgray1);
+    vector<pair<int,int> > fts2 = GenFeature(imgray2);
     cout<<"cantidad características imagen 1: "<<fts1.size()<<" cantidad características imagen 2: "<<fts2.size()<<endl;    
     //namedWindow("edges",1);
     //imshow("edges", db);
