@@ -191,10 +191,26 @@ def test_triangulate():
     print array
     
             
-    
-test_triangulate()
+A = []
 
-#print intersectionbtwlines([0,0,0], [5,5,5], [-5,-5,5], [0, 0 , 0])
+for idx in xrange(0, len(points)):
+    proj1 = projection_on_first_camera[idx]
+    proj2 = projection_on_second_camera[idx]
+    u = proj1[0]
+    v = proj1[1]
+    up = proj2[0]
+    vp = proj2[1]
+    a = [u * up, up * v, up, u * vp, v * vp, vp, u, v, 1]
+    A.append(a)
+  
+print "===="  
+    
+print A
+    
+    
+    
+#test_triangulate()
+#print get_intersection([0,0,0], [5,5,5], [-5,-5,5], [0, 0 , 0])
 
 
 
