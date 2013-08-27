@@ -48,6 +48,7 @@ def normalize(vector):
 	###	return p2_p1.multbyscalar(ua).add(p1);
 ###	}
 	
+<<<<<<< HEAD
 def intersectionbtwlines(p1, p2, p3, p4):
     p2_p1 = res(p2,p1)
     p4_p3 = res(p4,p3)
@@ -56,12 +57,45 @@ def intersectionbtwlines(p1, p2, p3, p4):
     print cross_product(p2_p1, p4_p3)
     den = cross_product(p2_p1, p4_p3)[2]
     print den
+=======
+def aux_inter(p1, p2, p3, p4):
+    p2_p1 = [p2[0] - p1[0], p2[1] - p1[1]]
+    p4_p3 = [p4[0] - p3[0], p4[1] - p3[1]]
+    #print p2_p1, p4_p3
+    den = p2_p1[0] * p4_p3[1] - p2_p1[1] * p4_p3[0]
+>>>>>>> 374b5e3e557a4c3c1ca025ecb6ae7353a2e63cc8
     if(abs(den) < EPS):## the lines are parallel or coincident
         return None
-    p1_p3 = res(p1,p3)
-    num = cross_product(p4_p3, p1_p3)[2]
+    p1_p3 = [p1[0] - p3[0], p1[1] - p3[1]]
+    num = p4_p3[0] * p1_p3[1] - p4_p3[1] * p1_p3[0]
     ua = num/den
-    return sumv(multbyscalar(p2_p1,ua), p1)
+    return ua
+    
+def get_intersection(p1, p2, p3, p4):
+    pp1 = [p1[0], p1[1]]
+    pp2 = [p2[0], p2[1]]
+    pp3 = [p3[0], p3[1]]
+    pp4 = [p4[0], p4[1]]
+    intersection = aux_inter(pp1, pp2, pp3, pp4)
+    if (intersection != None):
+        return multbyscalar(res(p2,p1), intersection)
+    pp1 = [p1[0], p1[2]]
+    pp2 = [p2[0], p2[2]]
+    pp3 = [p3[0], p3[2]]
+    pp4 = [p4[0], p4[2]]
+    intersection = aux_inter(pp1, pp2, pp3, pp4)
+    if (intersection != None):
+        return multbyscalar(res(p2,p1), intersection)
+    pp1 = [p1[1], p1[2]]
+    pp2 = [p2[1], p2[2]]
+    pp3 = [p3[1], p3[2]]
+    pp4 = [p4[1], p4[2]]
+    intersection = aux_inter(pp1, pp2, pp3, pp4)
+    if (intersection != None):
+        return multbyscalar(res(p2,p1), intersection)
+    return None
+        
+    
 
     
 argumentos = sys.argv
@@ -148,6 +182,8 @@ for p in points:
 #print "second:", projection_on_second_camera
 
 
+
+print "==="
 def test_triangulate():
     array = []
     for i in range(0,8):
@@ -160,11 +196,12 @@ def test_triangulate():
         p4 = sumv(p4, multbyscalar(plusY,proj2[1]))
         p4 = sumv(p4, multbyscalar(plusZ,proj2[2]))
         p4 = sumv(p4, centerOfProjection)
-        print p1,p2,p3,p4
-        array.append(intersectionbtwlines(p1, p2, p3, p4))
-    print "==="
-    print array
+        #print p1,p2,p3,p4
+        array.append(get_intersection(p1, p2, p3, p4))
+    #print "==="
+    #print array
     
+<<<<<<< HEAD
 
 a = [[4,5,6],[7,8,9],[10,11,12]]
 U,s,V = linalg.svd(a, full_matrices = False)          
@@ -176,8 +213,34 @@ print V
 #test_triangulate()
 
 
+=======
+            
+A = []
+
+for idx in xrange(0, len(points)):
+    proj1 = projection_on_first_camera[idx]
+    proj2 = projection_on_second_camera[idx]
+    u = proj1[0]
+    v = proj1[1]
+    up = proj2[0]
+    vp = proj2[1]
+    a = [u * up, up * v, up, u * vp, v * vp, vp, u, v, 1]
+    A.append(a)
+  
+print "===="  
+    
+Amatrix = matrix(A)
 
 
+U,S,V = linalg.svd(A)
+
+print U
+print S
+print V
+    
+    
+#test_triangulate()
+#print get_intersection([0,0,0], [5,5,5], [-5,-5,5], [0, 0 , 0])
 
 
 
