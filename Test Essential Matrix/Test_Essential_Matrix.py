@@ -48,16 +48,43 @@ def normalize(vector):
 	###	return p2_p1.multbyscalar(ua).add(p1);
 ###	}
 	
-def intersectionbtwlines(p1, p2, p3, p4):
-    p2_p1 = res(p2,p1)
-    p4_p3 = res(p4,p3)
-    den = cross_product(p2_p1, p4_p3)[2]
+def aux_inter(p1, p2, p3, p4):
+    p2_p1 = [p2[0] - p1[0], p2[1] - p1[1]]
+    p4_p3 = [p4[0] - p3[0], p4[1] - p3[1]]
+    #print p2_p1, p4_p3
+    den = p2_p1[0] * p4_p3[1] - p2_p1[1] * p4_p3[0]
     if(abs(den) < EPS):## the lines are parallel or coincident
         return None
-    p1_p3 = res(p1,p3)
-    num = cross_product(p4_p3, p1_p3)[2]
+    p1_p3 = [p1[0] - p3[0], p1[1] - p3[1]]
+    num = p4_p3[0] * p1_p3[1] - p4_p3[1] * p1_p3[0]
     ua = num/den
-    return sumv(multbyscalar(p2_p1,ua), p1)
+    return ua
+    
+def get_intersection(p1, p2, p3, p4):
+    pp1 = [p1[0], p1[1]]
+    pp2 = [p2[0], p2[1]]
+    pp3 = [p3[0], p3[1]]
+    pp4 = [p4[0], p4[1]]
+    intersection = aux_inter(pp1, pp2, pp3, pp4)
+    if (intersection != None):
+        return multbyscalar(res(p2,p1), intersection)
+    pp1 = [p1[0], p1[2]]
+    pp2 = [p2[0], p2[2]]
+    pp3 = [p3[0], p3[2]]
+    pp4 = [p4[0], p4[2]]
+    intersection = aux_inter(pp1, pp2, pp3, pp4)
+    if (intersection != None):
+        return multbyscalar(res(p2,p1), intersection)
+    pp1 = [p1[1], p1[2]]
+    pp2 = [p2[1], p2[2]]
+    pp3 = [p3[1], p3[2]]
+    pp4 = [p4[1], p4[2]]
+    intersection = aux_inter(pp1, pp2, pp3, pp4)
+    if (intersection != None):
+        return multbyscalar(res(p2,p1), intersection)
+    return None
+        
+    
 
     
 argumentos = sys.argv
@@ -144,6 +171,8 @@ print "first:", projection_on_first_camera
 print "second:", projection_on_second_camera
 
 
+
+print "==="
 def test_triangulate():
     array = []
     for i in range(0,8):
@@ -156,8 +185,8 @@ def test_triangulate():
         p4 = sumv(p4, multbyscalar(plusY,proj2[1]))
         p4 = sumv(p4, multbyscalar(plusZ,proj2[2]))
         p4 = sumv(p4, centerOfProjection)
-        print p1,p2,p3,p4
-        array.append(intersectionbtwlines(p1, p2, p3, p4))
+        #print p1,p2,p3,p4
+        array.append(get_intersection(p1, p2, p3, p4))
     print "==="
     print array
     
@@ -165,7 +194,7 @@ def test_triangulate():
     
 test_triangulate()
 
-
+#print intersectionbtwlines([0,0,0], [5,5,5], [-5,-5,5], [0, 0 , 0])
 
 
 
