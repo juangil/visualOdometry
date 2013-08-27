@@ -187,8 +187,8 @@ def test_triangulate():
         p4 = sumv(p4, centerOfProjection)
         #print p1,p2,p3,p4
         array.append(get_intersection(p1, p2, p3, p4))
-    print "==="
-    print array
+    #print "==="
+    #print array
     
             
 A = []
@@ -205,8 +205,13 @@ for idx in xrange(0, len(points)):
   
 print "===="  
     
-print A
-    
+Amatrix = matrix(A)
+
+U,S,V = linalg.svd(A)
+
+print U
+print S
+print V
     
     
 #test_triangulate()
