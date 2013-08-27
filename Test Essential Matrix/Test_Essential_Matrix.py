@@ -3,7 +3,7 @@
 
 import sys
 from math import sqrt
-from numpy import *
+from numpy import * 
 
 EPS = 1e-10
 
@@ -51,7 +51,11 @@ def normalize(vector):
 def intersectionbtwlines(p1, p2, p3, p4):
     p2_p1 = res(p2,p1)
     p4_p3 = res(p4,p3)
+    print p2_p1
+    print p4_p3
+    print cross_product(p2_p1, p4_p3)
     den = cross_product(p2_p1, p4_p3)[2]
+    print den
     if(abs(den) < EPS):## the lines are parallel or coincident
         return None
     p1_p3 = res(p1,p3)
@@ -101,7 +105,7 @@ for p in points:
     np = [p[0] / p[2], p[1] / p[2], 1]
     projection_on_first_camera.append(np)
 
-projection_on_second_camera = []
+projectionnp_on_second_camera = []
     
 #procesando la segunda camara
 
@@ -140,8 +144,8 @@ for p in points:
     np = [pp[0] / pp[2], pp[1] / pp[2], 1]
     projection_on_second_camera.append(np)  
     
-print "first:", projection_on_first_camera
-print "second:", projection_on_second_camera
+#print "first:", projection_on_first_camera
+#print "second:", projection_on_second_camera
 
 
 def test_triangulate():
@@ -161,9 +165,17 @@ def test_triangulate():
     print "==="
     print array
     
-            
-    
-test_triangulate()
+
+a = [[4,5,6],[7,8,9],[10,11,12]]
+U,s,V = linalg.svd(a, full_matrices = False)          
+print U
+print
+print s
+print
+print V
+#test_triangulate()
+
+
 
 
 
