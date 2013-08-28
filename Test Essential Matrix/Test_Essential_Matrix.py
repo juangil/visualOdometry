@@ -48,7 +48,7 @@ def normalize(vector):
 	###	return p2_p1.multbyscalar(ua).add(p1);
 ###	}
 	
-<<<<<<< HEAD
+ 
 def intersectionbtwlines(p1, p2, p3, p4):
     p2_p1 = res(p2,p1)
     p4_p3 = res(p4,p3)
@@ -57,13 +57,12 @@ def intersectionbtwlines(p1, p2, p3, p4):
     print cross_product(p2_p1, p4_p3)
     den = cross_product(p2_p1, p4_p3)[2]
     print den
-=======
+
 def aux_inter(p1, p2, p3, p4):
     p2_p1 = [p2[0] - p1[0], p2[1] - p1[1]]
     p4_p3 = [p4[0] - p3[0], p4[1] - p3[1]]
     #print p2_p1, p4_p3
     den = p2_p1[0] * p4_p3[1] - p2_p1[1] * p4_p3[0]
->>>>>>> 374b5e3e557a4c3c1ca025ecb6ae7353a2e63cc8
     if(abs(den) < EPS):## the lines are parallel or coincident
         return None
     p1_p3 = [p1[0] - p3[0], p1[1] - p3[1]]
@@ -201,20 +200,8 @@ def test_triangulate():
     #print "==="
     #print array
     
-<<<<<<< HEAD
-
-a = [[4,5,6],[7,8,9],[10,11,12]]
-U,s,V = linalg.svd(a, full_matrices = False)          
-print U
-print
-print s
-print
-print V
 #test_triangulate()
 
-
-=======
-            
 A = []
 
 for idx in xrange(0, len(points)):
@@ -232,12 +219,36 @@ print "===="
 Amatrix = matrix(A)
 
 
+#print A
+
 U,S,V = linalg.svd(A)
 
-print U
-print S
+#print U
+#print
+#print S
+#print
 print V
-    
+
+"""
+##print U
+##print S.shape
+##print V
+prueba = []
+suma = 0
+for i in xrange(0,len(A)):
+    suma = 0
+    for j in range(0,8):
+        suma += A[i][j]*V[8,j]
+    prueba.append(suma)
+
+print prueba
+print 
+print V[8,:]
+
+print "==="
+
+#print prueba
+          """
     
 #test_triangulate()
 #print get_intersection([0,0,0], [5,5,5], [-5,-5,5], [0, 0 , 0])
