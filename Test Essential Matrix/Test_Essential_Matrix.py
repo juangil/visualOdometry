@@ -47,16 +47,7 @@ def normalize(vector):
 	###	double ua=num/den;
 	###	return p2_p1.multbyscalar(ua).add(p1);
 ###	}
-	
- 
-def intersectionbtwlines(p1, p2, p3, p4):
-    p2_p1 = res(p2,p1)
-    p4_p3 = res(p4,p3)
-    print p2_p1
-    print p4_p3
-    print cross_product(p2_p1, p4_p3)
-    den = cross_product(p2_p1, p4_p3)[2]
-    print den
+
 
 def aux_inter(p1, p2, p3, p4):
     p2_p1 = [p2[0] - p1[0], p2[1] - p1[1]]
@@ -180,9 +171,6 @@ for p in points:
 #print "first:", projection_on_first_camera
 #print "second:", projection_on_second_camera
 
-
-
-print "==="
 def test_triangulate():
     array = []
     for i in range(0,8):
@@ -199,8 +187,7 @@ def test_triangulate():
         array.append(get_intersection(p1, p2, p3, p4))
     #print "==="
     #print array
-    
-#test_triangulate()
+
 
 A = []
 
@@ -211,47 +198,79 @@ for idx in xrange(0, len(points)):
     v = proj1[1]
     up = proj2[0]
     vp = proj2[1]
-    a = [u * up, up * v, up, u * vp, v * vp, vp, u, v, 1]
+    a = [u * up, u * vp, u, up * v, v * vp, v, up, vp, 1]
     A.append(a)
   
-print "===="  
-    
+"""
+for row in A:
+    for col in row:
+        print col,
+    print "\n"
+"""   
+  
 Amatrix = matrix(A)
-
 
 #print A
 
-U,S,V = linalg.svd(A)
+U,s,V = linalg.svd(A)
 
-#print U
-#print
-#print S
-#print
-print V
 
-"""
-##print U
-##print S.shape
-##print V
-prueba = []
-suma = 0
-for i in xrange(0,len(A)):
-    suma = 0
-    for j in range(0,8):
-        suma += A[i][j]*V[8,j]
-    prueba.append(suma)
+def Util_Print(B):
+    if (len(B.shape) == 2):
+        for x in xrange(0, B.shape[0]):
+            for y in xrange(0, B.shape[1]):
+                print "%.5f" % B[x,y],
+            print
+    else:
+        for x in xrange(0, B.shape[0]):
+            print "%.5f" % B[x],
+        print
 
-print prueba
-print 
-print V[8,:]
 
-print "==="
+#print "U="
+#Util_Print(U)
+#print "S="
+#Util_Print(s)
+#print "V="
+#Util_Print(V)
 
-#print prueba
-          """
+
+#nS = matrix(zeros(shape=(8,9)))
+
+#for x in xrange(0, s.shape[0]):
+#    nS[x,x] = s[x]
+#    
+#prueba = (U * nS) * V
+
+#print "A="
+#Util_Print(prueba)
+
+sol = matrix(zeros([9,1]))
+
+for idx in xrange(0, 9):
+    sol[idx, 0] = V[8, idx]
     
-#test_triangulate()
-#print get_intersection([0,0,0], [5,5,5], [-5,-5,5], [0, 0 , 0])
+#print A * sol # aca se verifica que sol efectivamente sea una solucion AX = 0
+
+tmp = [[sol[0,0], sol[1,0], sol[2,0]], [sol[3,0], sol[4,0], sol[5,0]], [sol[6,0], sol[7,0], sol[8,0]]]
+
+
+Essentialmatrix = matrix(tmp)
+
+
+print "E = "
+Util_Print(Essentialmatrix)
+
+
+def TestEssentialMatrix(E):
+    for idx in xrange(len(points)):
+        x = matrix(projection_on_first_camera[idx])
+        xp = matrix(projection_on_second_camera[idx])
+        xp = xp.transpose()
+        print x * (E * xp)
+
+
+TestEssentialMatrix(Essentialmatrix)
 
 
 
