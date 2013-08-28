@@ -203,16 +203,51 @@ for idx in xrange(0, len(points)):
     a = [u * up, up * v, up, u * vp, v * vp, vp, u, v, 1]
     A.append(a)
   
-print "===="  
-    
+print "8 9"  
+  
+"""
+for row in A:
+    for col in row:
+        print col,
+    print "\n"
+"""   
+  
 Amatrix = matrix(A)
 
-U,S,V = linalg.svd(A)
+#print A
 
-print U
-print S
+U,s,V = linalg.svd(A)
+
+
+def Util_Print(B):
+    for x in xrange(0, B.shape[0]):
+        for y in xrange(0, B.shape[1]):
+            print "%.5f" % B[x,y],
+        print 
+
+
+print "U="
+Util_Print(U)
+print "V="
+Util_Print(V)
+
+"""
+last_column = []
+
 print V
+h = V[8,:]
+
+print h
+
+col = []
+
+for idx in range(0, 8):
+    col.append(V[8, idx])
     
+columna = matrix(col)
+
+print columna    
+"""
     
 #test_triangulate()
 #print get_intersection([0,0,0], [5,5,5], [-5,-5,5], [0, 0 , 0])
