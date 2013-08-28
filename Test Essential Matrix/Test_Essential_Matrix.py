@@ -3,7 +3,7 @@
 
 import sys
 from math import sqrt
-from numpy import *
+from numpy import * 
 
 EPS = 1e-10
 
@@ -48,6 +48,7 @@ def normalize(vector):
 	###	return p2_p1.multbyscalar(ua).add(p1);
 ###	}
 	
+
 def aux_inter(p1, p2, p3, p4):
     p2_p1 = [p2[0] - p1[0], p2[1] - p1[1]]
     p4_p3 = [p4[0] - p3[0], p4[1] - p3[1]]
@@ -128,7 +129,7 @@ for p in points:
     np = [p[0] / p[2], p[1] / p[2], 1]
     projection_on_first_camera.append(np)
 
-projection_on_second_camera = []
+projectionnp_on_second_camera = []
     
 #procesando la segunda camara
 
@@ -167,8 +168,8 @@ for p in points:
     np = [pp[0] / pp[2], pp[1] / pp[2], 1]
     projection_on_second_camera.append(np)  
     
-print "first:", projection_on_first_camera
-print "second:", projection_on_second_camera
+#print "first:", projection_on_first_camera
+#print "second:", projection_on_second_camera
 
 
 
@@ -190,6 +191,7 @@ def test_triangulate():
     #print "==="
     #print array
     
+
             
 A = []
 
@@ -202,8 +204,6 @@ for idx in xrange(0, len(points)):
     vp = proj2[1]
     a = [u * up, up * v, up, u * vp, v * vp, vp, u, v, 1]
     A.append(a)
-  
-print "8 9"  
   
 """
 for row in A:
@@ -231,26 +231,6 @@ Util_Print(U)
 print "V="
 Util_Print(V)
 
-"""
-last_column = []
-
-print V
-h = V[8,:]
-
-print h
-
-col = []
-
-for idx in range(0, 8):
-    col.append(V[8, idx])
-    
-columna = matrix(col)
-
-print columna    
-"""
-    
-#test_triangulate()
-#print get_intersection([0,0,0], [5,5,5], [-5,-5,5], [0, 0 , 0])
 
 
 
