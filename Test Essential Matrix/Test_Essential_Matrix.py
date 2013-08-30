@@ -168,8 +168,8 @@ for p in points:
     np = [pp[0] / pp[2], pp[1] / pp[2], 1]
     projection_on_second_camera.append(np)  
     
-#print "first:", projection_on_first_camera
-#print "second:", projection_on_second_camera
+print "first:", projection_on_first_camera
+print "second:", projection_on_second_camera
 
 def test_triangulate():
     array = []
@@ -225,15 +225,6 @@ def Util_Print(B):
             print "%.5f" % B[x],
         print
 
-
-#print "U="
-#Util_Print(U)
-#print "S="
-#Util_Print(s)
-#print "V="
-#Util_Print(V)
-
-
 #nS = matrix(zeros(shape=(8,9)))
 
 #for x in xrange(0, s.shape[0]):
@@ -269,9 +260,33 @@ def TestEssentialMatrix(E):
         print x * (E * xp)
 
 
-TestEssentialMatrix(Essentialmatrix)
+TestEssentialMatrix(Essentialmatrix) # Aca se prueba que la matriz esencial efectivamente satisfaga la restriccion epipolar
 
 
+U,s,V = linalg.svd(Essentialmatrix)
+
+print "U="
+Util_Print(U)
+print "S="
+Util_Print(s)
+print "V="
+Util_Print(V)
+
+
+def Test_Epipolar_with_Rotation_and_Traslation():
+    print "Test"
+    Rotation = matrix([[0 , 0, -1],[-1, 0, 0],[0, 1, 0]])
+    T = [10, 0, 8]
+    for idx in xrange(0, len(points)):
+        x = matrix(projection_on_first_camera[idx])
+        xp = projection_on_second_camera[idx]
+        x = x.transpose()
+        Rx = Rotation * x
+        Rx = [Rx[0,0], Rx[1,0], Rx[2,0]]
+        tmp = cross_product(T, xp)
+        print dot(Rx, tmp)
+
+Test_Epipolar_with_Rotation_and_Traslation()
 
 
     
