@@ -1,6 +1,4 @@
 
-
-
 import sys
 from math import sqrt
 from numpy import * 
@@ -129,7 +127,6 @@ for p in points:
     np = [p[0] / p[2], p[1] / p[2], 1]
     projection_on_first_camera.append(np)
 
-projectionnp_on_second_camera = []
     
 #procesando la segunda camara
 
@@ -168,8 +165,8 @@ for p in points:
     np = [pp[0] / pp[2], pp[1] / pp[2], 1]
     projection_on_second_camera.append(np)  
     
-print "first:", projection_on_first_camera
-print "second:", projection_on_second_camera
+#print "first:", projection_on_first_camera
+#print "second:", projection_on_second_camera
 
 def test_triangulate():
     array = []
@@ -249,9 +246,8 @@ tmp = [[sol[0,0], sol[1,0], sol[2,0]], [sol[3,0], sol[4,0], sol[5,0]], [sol[6,0]
 Essentialmatrix = matrix(tmp)
 
 
-print "E = "
+#print "E = "
 Util_Print(Essentialmatrix)
-
 
 def TestEssentialMatrix(E):
     for idx in xrange(len(points)):
@@ -261,36 +257,39 @@ def TestEssentialMatrix(E):
         print x * (E * xp)
 
 
-TestEssentialMatrix(Essentialmatrix) # Aca se prueba que la matriz esencial efectivamente satisfaga la restriccion epipolar
-
+#TestEssentialMatrix(Essentialmatrix) # Aca se prueba que la matriz esencial efectivamente satisfaga la restriccion epipolar
 
 U,s,V = linalg.svd(Essentialmatrix)
 
-print "U="
-Util_Print(U)
-print "S="
-Util_Print(s)
-print "V="
-Util_Print(V)
+#print "U="
+#Util_Print(U)
+#print "S="
+#Util_Print(s)
+#print "V="
+#Util_Print(V)
 
 
 def Test_Epipolar_with_Rotation_and_Traslation():
     print "Test"
     Rotation = matrix([[0 , 0, -1],[-1, 0, 0],[0, 1, 0]])
-    T = [10, 0, 8]
+    T = matrix([[0 , -10, 0],[8, 0, -10],[0, 10, 0]])
     for idx in xrange(0, len(points)):
         x = matrix(projection_on_first_camera[idx])
-        xp = projection_on_second_camera[idx]
-        x = x.transpose()
-        Rx = Rotation * x
-        Rx = [Rx[0,0], Rx[1,0], Rx[2,0]]
-        tmp = cross_product(T, xp)
-        print dot(Rx, tmp)
+        xp = matrix(projection_on_second_camera[idx])
+        xp = xp.transpose()
+        #print x,xp
+        tmp1 = Rotation*xp
+        #print tmp1
+        #print xp
+        tmp2 = x*T
+        tmp3 = tmp2*tmp1
+        #print xp*T*Rotation*x
+        print tmp3
+ 
+     
 
 Test_Epipolar_with_Rotation_and_Traslation()
 
-
-    
 
 
 
