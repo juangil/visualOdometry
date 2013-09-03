@@ -4,6 +4,10 @@
 import sys
 from math import sqrt
 from numpy import * 
+from math import cos
+from math import sin
+from math import pi
+
 
 EPS = 1e-10
 
@@ -34,6 +38,25 @@ def multbyscalar(a,b):
     
 def normalize(vector): 
     return multbyscalar(vector, 1.0 / norm(vector))
+    
+    
+def triple_product(a, b, c):
+    return dot(a, cross(b, c))
+    
+    
+def all_coplanar(array):
+    """ under construction, not ready"""
+    return None
+    
+def get_rotation_matrix(x, y , z):
+    matriz_x = matrix([ [1,0,0] , [0, cos(x), -sin(x)], [0, sin(x), cos(x)] ])
+    matriz_y = matrix([ [cos(y),0,sin(y)] , [0, 1, 0], [ -sin(y), 0, cos(y)] ])
+    matriz_z = matrix([ [cos(z),-sin(z),0] , [sin(z), cos(z), 0], [0, 0, 1] ])
+    return matriz_x * matriz_y * matriz_z
+    
+    
+def get_skew_matrix(tx, ty, tz):
+    return matrix([[0, -tz, ty], [tz, 0, -tx], [-ty, tx, 0]])
     
     
 ###static point intersectionbtwlines(point p1,point p2,point p3,point p4){
@@ -110,6 +133,9 @@ if (len(points) < 8):
     print "hay menos de 8 puntos en el dataset"
     sys.exit()
     
+if (all_coplanar(points)):
+    print "todos los puntos son coplanares"
+    sys.exit()
     
 # projectando los puntos sobre la primera camara.
 # centro de proyeccion = (0,0,0)
@@ -128,8 +154,6 @@ for p in points:
         sys.exit()
     np = [p[0] / p[2], p[1] / p[2], 1]
     projection_on_first_camera.append(np)
-
-projectionnp_on_second_camera = []
     
 #procesando la segunda camara
 
@@ -253,6 +277,7 @@ Util_Print(Essentialmatrix)
 
 
 def TestEssentialMatrix(E):
+    print "Test: Epipolar constraint Test"
     for idx in xrange(len(points)):
         x = matrix(projection_on_first_camera[idx])
         xp = matrix(projection_on_second_camera[idx])
@@ -260,7 +285,7 @@ def TestEssentialMatrix(E):
         print x * (E * xp)
 
 
-TestEssentialMatrix(Essentialmatrix) # Aca se prueba que la matriz esencial efectivamente satisfaga la restriccion epipolar
+#TestEssentialMatrix(Essentialmatrix) # Aca se prueba que la matriz esencial efectivamente satisfaga la restriccion epipolar
 
 
 U,s,V = linalg.svd(Essentialmatrix)
@@ -274,19 +299,55 @@ Util_Print(V)
 
 
 def Test_Epipolar_with_Rotation_and_Traslation():
-    print "Test"
-    Rotation = matrix([[0 , 0, -1],[-1, 0, 0],[0, 1, 0]])
+    print "Test: from Rotation and traslation: OK" 
+    Rotation = get_rotation_matrix(pi/2 , -pi/2, 0)
     T = [10, 0, 8]
     for idx in xrange(0, len(points)):
-        x = matrix(projection_on_first_camera[idx])
-        xp = projection_on_second_camera[idx]
-        x = x.transpose()
-        Rx = Rotation * x
+        x = projection_on_first_camera[idx]
+        xp = matrix(projection_on_second_camera[idx])
+        xp = xp.transpose()
+        Rx = Rotation * xp
         Rx = [Rx[0,0], Rx[1,0], Rx[2,0]]
-        tmp = cross_product(T, xp)
-        print dot(Rx, tmp)
+        tmp = cross_product(T, Rx)
+        print dot(x, tmp)
+        
+def Test_coplanar_one_coordinate_system():
+    print "Test: Coplanar one coordinate system: OK"
+    T = [10, 0, 8]
+    for i in xrange(0, len(points)):
+        proj1 = projection_on_first_camera[i]
+        proj2 = projection_on_second_camera[i]
+        p4 = multbyscalar(plusX,proj2[0])
+        p4 = sumv(p4, multbyscalar(plusY,proj2[1]))
+        p4 = sumv(p4, multbyscalar(plusZ,proj2[2]))
+        v = p4
+        print dot(T, cross(v, proj1))
+        
 
-Test_Epipolar_with_Rotation_and_Traslation()
+R = get_rotation_matrix(pi/2 , -pi/2, 0)
+t = get_skew_matrix(10, 0, 8)
+Essential_no_estimada = t * R
+
+
+#Test_Epipolar_with_Rotation_and_Traslation() # Test OK
+#Test_coplanar_one_coordinate_system() # Test OK
+#TestEssentialMatrix(Essentialmatrix) # Test OK
+#TestEssentialMatrix(Essential_no_estimada) # Test OK
+
+print "E = (No estimada)"
+print Essential_no_estimada
+print "E = (estimada)"
+print Essentialmatrix
+
+U,s,V = linalg.svd(Essential_no_estimada)
+
+print "U="
+Util_Print(U)
+print "S="
+Util_Print(s)
+print "V="
+Util_Print(V)
+
 
 
     
