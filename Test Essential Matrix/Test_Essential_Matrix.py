@@ -57,6 +57,17 @@ def get_skew_matrix(tx, ty, tz):
     return matrix([[0, -tz, ty], [tz, 0, -tx], [-ty, tx, 0]])
     
     
+def is_skew_matrix(T):
+    if (abs(T[0,0] > EPS) or abs(T[1,1] > EPS) or abs(T[2,2] > EPS)):
+        return False
+    for i in xrange(3):
+        for j  in xrange(i + 1, 3):
+            if ( abs(T[i,j] + T[j, i]) > EPS):
+                return False
+    return True
+    
+    
+    
 ###static point intersectionbtwlines(point p1,point p2,point p3,point p4){
 	###	point p2_p1=p2.sub(p1);
 	###	point p4_p3=p4.sub(p3);
@@ -364,6 +375,8 @@ print Essential_no_estimada
 print "E = (estimada)"
 print Essentialmatrix
 
+
+"""
 U,s,V = linalg.svd(Essential_no_estimada)
 
 print "singular value descomposition no estimada(ideal): "
@@ -374,21 +387,42 @@ Util_Print(s)
 print "V="
 Util_Print(V)
 
-UU,ss,VV = linalg.svd(Essentialmatrix)
-print "singular value descomposition estimada(noisy): "
-print "U="
-Util_Print(UU)
-print "S="
-Util_Print(ss)
-print "V="
-Util_Print(VV)
 
-sss = diag([ss[0],ss[1],0])
+print U * diag([s[0],s[1],0]) * V
+
+
+def Descomposicion_de_E(E):
+    """ se asume que la matriz E, es una matriz esencial valida, rank 2 """
+    print "enumerando las posibilidades"
+    U,s,VT = linalg.svd(Essential_no_estimada)
+    S = matrix(diag([s[0],s[1],s[2]]))
+    W = matrix([[0,1,0],[-1,0,0],[0,0,1]])
+    Rot1 = U * W * VT
+    Rot2 = U * W.transpose() * VT
+    T1skew = U * W * S * U.transpose()
+    if (not(is_skew_matrix(T1skew))):
+        print "La matriz de Traslacion deberia ser skew y no lo es"
+        return
+    T1 = matrix([T1skew[2,1], T1skew[0,2], T1skew[1,0]]).H
+    T2 = -1*T1
+    print "Rotacion 1"
+    print Rot1
+    print "Rotacion 2"
+    print Rot2
+    print "Traslacion 1"
+    print T1
+    print "Traslacion 2"
+    print T2
+    
+    
+    
+    
+Descomposicion_de_E(Essential_no_estimada)
 
 print 
 print "essential matrix with correct diagonal: "
 Util_Print(UU*sss*VV)
 print
 Util_Print(Essential_no_estimada)
-"""
+
 
