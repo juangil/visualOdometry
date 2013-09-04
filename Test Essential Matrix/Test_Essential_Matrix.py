@@ -237,6 +237,7 @@ Amatrix = matrix(A)
 U,s,V = linalg.svd(A)
 
 
+
 def Util_Print(B):
     if (len(B.shape) == 2):
         for x in xrange(0, B.shape[0]):
@@ -247,6 +248,16 @@ def Util_Print(B):
         for x in xrange(0, B.shape[0]):
             print "%.5f" % B[x],
         print
+
+print "singular value descomposition de la matriz A:"
+print "U"
+Util_Print(U)
+print
+print "s"
+Util_Print(s)
+print 
+print "V"
+Util_Print(V)
 
 #nS = matrix(zeros(shape=(8,9)))
 
@@ -260,9 +271,26 @@ def Util_Print(B):
 
 sol = matrix(zeros([9,1]))
 
-for idx in xrange(0, 9):
-    sol[idx, 0] = V[8, idx]
+for idx in range(0,9):
+    sol[idx,0] = V[8,idx]
+
+"""
+def gettingAllSolutionsOfA(B):
+    listSolutions = []
+    for idx in xrange(0,len(B)):
+        if(B[idx] < EPS) listSolutions.append(idx)
+         
+def mergingAllSolutionsofA():
+    idxsolutions = gettingAllSolutionsOfA(s)
+    solutions = []
+    for idx in solutions:
+        tmp = []
+        for j in xrange(0,9):
+            tmp[j, 0] = V[idx, j]
+        tmpmatrix = matrix(tmp)
+        solutions.append(tmp)
     
+ """     
 #print A * sol # aca se verifica que sol efectivamente sea una solucion AX = 0
 
 tmp = [[sol[0,0], sol[1,0], sol[2,0]], [sol[3,0], sol[4,0], sol[5,0]], [sol[6,0], sol[7,0], sol[8,0]]]
@@ -272,7 +300,7 @@ Essentialmatrix = matrix(tmp)
 
 
 #print "E = "
-Util_Print(Essentialmatrix)
+#Util_Print(Essentialmatrix)
 
 def TestEssentialMatrix(E):
     print "Test: Epipolar constraint Test"
@@ -283,7 +311,7 @@ def TestEssentialMatrix(E):
         print x * (E * xp)
 
 
-#TestEssentialMatrix(Essentialmatrix) # Aca se prueba que la matriz esencial efectivamente satisfaga la restriccion epipolar
+TestEssentialMatrix(Essentialmatrix) # Aca se prueba que la matriz esencial efectivamente satisfaga la restriccion epipolar
 
 
 U,s,V = linalg.svd(Essentialmatrix)
@@ -294,7 +322,6 @@ U,s,V = linalg.svd(Essentialmatrix)
 #Util_Print(s)
 #print "V="
 #Util_Print(V)
-
 
 def Test_Epipolar_with_Rotation_and_Traslation():
     print "Test: from Rotation and traslation: OK" 
@@ -331,7 +358,7 @@ Essential_no_estimada = t * R
 #Test_coplanar_one_coordinate_system() # Test OK
 #TestEssentialMatrix(Essentialmatrix) # Test OK
 #TestEssentialMatrix(Essential_no_estimada) # Test OK
-
+"""
 print "E = (No estimada)"
 print Essential_no_estimada
 print "E = (estimada)"
@@ -339,6 +366,7 @@ print Essentialmatrix
 
 U,s,V = linalg.svd(Essential_no_estimada)
 
+print "singular value descomposition no estimada(ideal): "
 print "U="
 Util_Print(U)
 print "S="
@@ -346,8 +374,21 @@ Util_Print(s)
 print "V="
 Util_Print(V)
 
+UU,ss,VV = linalg.svd(Essentialmatrix)
+print "singular value descomposition estimada(noisy): "
+print "U="
+Util_Print(UU)
+print "S="
+Util_Print(ss)
+print "V="
+Util_Print(VV)
 
+sss = diag([ss[0],ss[1],0])
 
-
-
+print 
+print "essential matrix with correct diagonal: "
+Util_Print(UU*sss*VV)
+print
+Util_Print(Essential_no_estimada)
+"""
 
