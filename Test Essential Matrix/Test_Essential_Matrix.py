@@ -66,7 +66,18 @@ def is_skew_matrix(T):
                 return False
     return True
     
-    
+## UTIL
+
+def Util_Print(B):
+    if (len(B.shape) == 2):
+        for x in xrange(0, B.shape[0]):
+            for y in xrange(0, B.shape[1]):
+                print "%.5f" % B[x,y],
+            print
+    else:
+        for x in xrange(0, B.shape[0]):
+            print "%.5f" % B[x],
+        print
     
 ###static point intersectionbtwlines(point p1,point p2,point p3,point p4){
 	###	point p2_p1=p2.sub(p1);
@@ -247,6 +258,11 @@ Amatrix = matrix(A)
 
 U,s,V = linalg.svd(A)
 
+rank_A = 0
+for singular_value in s:
+    if (singular_value > EPS):
+        rank_A += 1
+
 
 
 def Util_Print(B):
@@ -259,6 +275,19 @@ def Util_Print(B):
         for x in xrange(0, B.shape[0]):
             print "%.5f" % B[x],
         print
+
+print "====== A (Estimada)======="
+print "El rank de la matriz A es %d" % rank_A
+print "A = "
+Util_Print(Amatrix)
+print "U="
+Util_Print(U)
+print "S="
+Util_Print(s)
+print "V="
+Util_Print(V)
+print "======= End A =========="
+
 
 Util_Print(Amatrix)
 print "singular value descomposition de la matriz A:"
@@ -311,8 +340,12 @@ tmp = [[sol[0,0], sol[1,0], sol[2,0]], [sol[3,0], sol[4,0], sol[5,0]], [sol[6,0]
 Essentialmatrix = matrix(tmp)
 
 
+
 #print "E = "
 #Util_Print(Essentialmatrix)
+
+
+
 
 def TestEssentialMatrix(E):
     print "Test: Epipolar constraint Test"
@@ -327,13 +360,16 @@ TestEssentialMatrix(Essentialmatrix) # Aca se prueba que la matriz esencial efec
 
 
 U,s,V = linalg.svd(Essentialmatrix)
-
+print "====== Essential (Estimada)======="
+print "E = "
+Util_Print(Essentialmatrix)
 print "U="
 Util_Print(U)
 print "S="
 Util_Print(s)
 print "V="
 Util_Print(V)
+print "======= End Essential =========="
 
 def Test_Epipolar_with_Rotation_and_Traslation():
     print "Test: from Rotation and traslation: OK" 
@@ -389,12 +425,21 @@ print "V="
 Util_Print(V)
 
 
+
 print U * diag([s[0],s[1],0]) * V
 """
 
 def Descomposicion_de_E(E):
     #se asume que la matriz E, es una matriz esencial valida, rank 2 
     print "enumerando las posibilidades"
+
+def Debug(cosa, verbose):
+    if (verbose):
+        print cosa
+
+def Possible_Solutions(E, verbose = False):
+    """ se asume que la matriz E, es una matriz esencial valida, rank 2 """
+    Debug("enumerando las posibilidades", verbose)
     U,s,VT = linalg.svd(E)
     S = matrix(diag([s[0],s[1],s[2]]))
     W = matrix([[0,1,0],[-1,0,0],[0,0,1]])
@@ -406,19 +451,39 @@ def Descomposicion_de_E(E):
         return
     T1 = matrix([T1skew[2,1], T1skew[0,2], T1skew[1,0]]).H
     T2 = -1*T1
-    print "Rotacion 1"
-    print Rot1
-    print "Rotacion 2"
-    print Rot2
-    print "Traslacion 1"
-    print T1
-    print "Traslacion 2"
-    print T2
+    Debug("Rotacion 1", verbose)
+    Debug(Rot1, verbose)
+    Debug("Rotacion 2", verbose)
+    Debug(Rot2, verbose)
+    Debug("Traslacion 1", verbose)
+    T1 = (1 / abs(T1[0,0])) * T1  # normalizacion de la traslacion de esta forma (1, x, y)
+    Debug(T1, verbose)
+    Debug("Traslacion 2", verbose)
+    T2 = (1 / abs(T2[0,0])) * T2  # normalizacion de la traslacion de esta forma (1, x, y)
+    Debug(T2, verbose)
+    return [[Rot1, T1], [Rot1, T2], [Rot2, T1], [Rot2, T2]]
     
+    
+def 
+    
+def Disambiguate(solutions):
+    """ dada la condicion ideal de este experimento se va a triangular solamente la primera correspondencia
+        en un real-setting debe ser un punto o muchos puntos aleatorios"""
+    proj1 = projection_on_first_camera[0]
+    proj2 = projection_on_second_camera[0]
+    for s in xrange(0, len(solutions)):
+        R = solutions[s][0]
+        t = solutions[s][1]
+        
     
     
     
 Descomposicion_de_E(Essentialmatrix)
+solutions = Possible_Solutions(Essentialmatrix)
+
+print solutions
+    
+
 
 """
 print 
