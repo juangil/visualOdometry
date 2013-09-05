@@ -260,6 +260,7 @@ def Util_Print(B):
             print "%.5f" % B[x],
         print
 
+Util_Print(Amatrix)
 print "singular value descomposition de la matriz A:"
 print "U"
 Util_Print(U)
@@ -327,12 +328,12 @@ TestEssentialMatrix(Essentialmatrix) # Aca se prueba que la matriz esencial efec
 
 U,s,V = linalg.svd(Essentialmatrix)
 
-#print "U="
-#Util_Print(U)
-#print "S="
-#Util_Print(s)
-#print "V="
-#Util_Print(V)
+print "U="
+Util_Print(U)
+print "S="
+Util_Print(s)
+print "V="
+Util_Print(V)
 
 def Test_Epipolar_with_Rotation_and_Traslation():
     print "Test: from Rotation and traslation: OK" 
@@ -374,7 +375,7 @@ print "E = (No estimada)"
 print Essential_no_estimada
 print "E = (estimada)"
 print Essentialmatrix
-
+"""
 
 """
 U,s,V = linalg.svd(Essential_no_estimada)
@@ -389,12 +390,12 @@ Util_Print(V)
 
 
 print U * diag([s[0],s[1],0]) * V
-
+"""
 
 def Descomposicion_de_E(E):
-    """ se asume que la matriz E, es una matriz esencial valida, rank 2 """
+    #se asume que la matriz E, es una matriz esencial valida, rank 2 
     print "enumerando las posibilidades"
-    U,s,VT = linalg.svd(Essential_no_estimada)
+    U,s,VT = linalg.svd(E)
     S = matrix(diag([s[0],s[1],s[2]]))
     W = matrix([[0,1,0],[-1,0,0],[0,0,1]])
     Rot1 = U * W * VT
@@ -417,12 +418,13 @@ def Descomposicion_de_E(E):
     
     
     
-Descomposicion_de_E(Essential_no_estimada)
+Descomposicion_de_E(Essentialmatrix)
 
+"""
 print 
 print "essential matrix with correct diagonal: "
 Util_Print(UU*sss*VV)
 print
 Util_Print(Essential_no_estimada)
-
+"""
 
