@@ -39,7 +39,7 @@ def normalize(vector):
     
     
 def triple_product(a, b, c):
-    return dot(a, cross(b, c))
+    return dot_product(a, cross_product(b, c))
     
     
 def all_coplanar(array):
@@ -78,6 +78,7 @@ def Util_Print(B):
         for x in xrange(0, B.shape[0]):
             print "%.5f" % B[x],
         print
+<<<<<<< HEAD
     
 ###static point intersectionbtwlines(point p1,point p2,point p3,point p4){
 	###	point p2_p1=p2.sub(p1);
@@ -91,6 +92,8 @@ def Util_Print(B):
 	###	return p2_p1.multbyscalar(ua).add(p1);
 ###	}
 
+=======
+>>>>>>> 6402fc6308af3dbbcb77dddba3d1b4f27d098fd9
 
 def aux_inter(p1, p2, p3, p4):
     p2_p1 = [p2[0] - p1[0], p2[1] - p1[1]]
@@ -127,6 +130,13 @@ def get_intersection(p1, p2, p3, p4):
     if (intersection != None):
         return multbyscalar(res(p2,p1), intersection)
     return None
+    
+    
+def is_in_front_of(plusZ, center, point):
+    proj = dot_product( res(point, center) , plusZ)
+    if (proj < 0):
+        return False
+    return True
         
     
 
@@ -464,20 +474,62 @@ def Possible_Solutions(E, verbose = False):
     return [[Rot1, T1], [Rot1, T2], [Rot2, T1], [Rot2, T2]]
     
 
+
 Descomposicion_de_E(Essentialmatrix)
 solutions = Possible_Solutions(Essentialmatrix, True)
 
     
-def Disambiguate(solutions):
+
+
+    
+def Disambiguate(solutions, verbose = False):
     """ dada la condicion ideal de este experimento se va a triangular solamente la primera correspondencia
         en un real-setting debe ser un punto o muchos puntos aleatorios"""
     proj1 = projection_on_first_camera[0]
     proj2 = projection_on_second_camera[0]
+    p1 = [0,0,0]
+    p2 = proj1
+    Debug("proj1 = %f, %f, %f" % (proj1[0], proj1[1], proj1[2]), verbose)
+    Debug("proj2 = %f, %f, %f" % (proj2[0], proj2[1], proj2[2]), verbose)
     for s in xrange(0, len(solutions)):
         R = solutions[s][0]
         t = solutions[s][1]
+        p3 = t
+        p4 = matrix(proj2)
+        p4 = p4.transpose()
+        p4 = R * p4
+        p4 = add(p3, p4)
+        Debug("solucion #%d" % s, verbose)
+        Debug("Puntos para desambiguar", verbose)
+        Debug("p1: %f %f %f" % (p1[0],p1[1],p1[2]), verbose)
+        Debug("p2: %f %f %f" % (p2[0],p2[1],p2[2]), verbose)
+        Debug("p3: %f %f %f" % (p3[0],p3[1],p3[2]), verbose)
+        Debug("p4: %f %f %f" % (p4[0],p4[1],p4[2]), verbose)
+        punto = get_intersection(p1, p2, p3, p4)
+        Debug("punto en 3D" + str(punto), verbose)
+        condition1 = is_in_front_of([0,0,1], [0,0,0], punto)
+        condition2 = is_in_front_of(plusZ, centerOfProjection, punto)
+        print condition1
+        print condition2
+        if (punto != None and condition1 and condition2):
+            return solutions[s]
+        Debug("=========", verbose)
+    print "No se encontro ninguna solucion"
+    return None
         
+
 #print solutions
+
+        
+        
+   
+solutions = Possible_Solutions(Essentialmatrix, True)
+solution = Disambiguate(solutions, True)
+
+print "La solucion"
+print solution    
+
+
 
 """
 print 
