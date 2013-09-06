@@ -463,8 +463,10 @@ def Possible_Solutions(E, verbose = False):
     Debug(T2, verbose)
     return [[Rot1, T1], [Rot1, T2], [Rot2, T1], [Rot2, T2]]
     
-    
-def 
+
+Descomposicion_de_E(Essentialmatrix)
+solutions = Possible_Solutions(Essentialmatrix, True)
+
     
 def Disambiguate(solutions):
     """ dada la condicion ideal de este experimento se va a triangular solamente la primera correspondencia
@@ -475,15 +477,7 @@ def Disambiguate(solutions):
         R = solutions[s][0]
         t = solutions[s][1]
         
-    
-    
-    
-Descomposicion_de_E(Essentialmatrix)
-solutions = Possible_Solutions(Essentialmatrix)
-
-print solutions
-    
-
+#print solutions
 
 """
 print 
