@@ -220,8 +220,7 @@ for p in points:
     np = [pp[0] / pp[2], pp[1] / pp[2], 1]
     projection_on_second_camera.append(np)  
     
-#print "first:", projection_on_first_camera
-#print "second:", projection_on_second_camera
+
 
 def test_triangulate():
     array = []
