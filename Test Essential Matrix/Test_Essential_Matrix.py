@@ -183,6 +183,7 @@ for p in points:
     np = [p[0] / p[2], p[1] / p[2], 1]
     projection_on_first_camera.append(np)
     
+    
 #procesando la segunda camara
 
 cameraFile = open(argumentos[2])
@@ -222,6 +223,22 @@ for p in points:
     
 
 
+#print "first:", projection_on_first_camera
+#print "second:", projection_on_second_camera
+
+
+print "First:"
+for projection in projection_on_first_camera:
+    print projection[0], projection[1]
+    
+print "Second:"
+for projection in projection_on_second_camera:
+    print projection[0], projection[1]
+    
+    
+    
+
+    
 def test_triangulate():
     array = []
     for i in range(0,8):
@@ -319,6 +336,7 @@ Util_Print(V)
 
 sol = matrix(zeros([9,1]))
 
+
 for idx in range(0,9):
     sol[idx,0] = V[8,idx]
 
@@ -339,6 +357,13 @@ def mergingAllSolutionsofA():
         solutions.append(tmp)
     
  """     
+for idx in xrange(0, 9):
+    sol[idx, 0] = V[8, idx]
+    
+print "Solucion para Ax = 0"
+
+print sol
+    
 #print A * sol # aca se verifica que sol efectivamente sea una solucion AX = 0
 
 tmp = [[sol[0,0], sol[1,0], sol[2,0]], [sol[3,0], sol[4,0], sol[5,0]], [sol[6,0], sol[7,0], sol[8,0]]]
@@ -376,7 +401,7 @@ print "S="
 Util_Print(s)
 print "V="
 Util_Print(V)
-print "======= End Essential =========="
+print "======= End Essential ============"
 
 def Test_Epipolar_with_Rotation_and_Traslation():
     print "Test: from Rotation and traslation: OK" 
@@ -530,7 +555,7 @@ def Disambiguate(solutions, verbose = False):
         
         
    
-solutions = Possible_Solutions(Essentialmatrix)
+solutions = Possible_Solutions(Essentialmatrix, True)
 solution = Disambiguate(solutions, True)
 
 print "La solucion"
