@@ -494,10 +494,15 @@ def Disambiguate(solutions, verbose = False):
         print solutions[s]
         R = solutions[s][0]
         t = solutions[s][1]
-        p3 = t
+        print "R"
+        print R
+        print "t"
+        print t
+        p3 = [t[0,0], t[1,0], t[2,0]]
         p4 = matrix(proj2)
         p4 = p4.transpose()
         p4 = R * p4
+        p4 = [p4[0,0], p4[1,0], p4[2,0]]
         p4 = add(p3, p4)
         Debug("solucion #%d" % s, verbose)
         Debug("Puntos para desambiguar", verbose)
@@ -505,14 +510,17 @@ def Disambiguate(solutions, verbose = False):
         Debug("p2: %f %f %f" % (p2[0],p2[1],p2[2]), verbose)
         Debug("p3: %f %f %f" % (p3[0],p3[1],p3[2]), verbose)
         Debug("p4: %f %f %f" % (p4[0],p4[1],p4[2]), verbose)
+        print p1,p2,p3,p4
         punto = get_intersection(p1, p2, p3, p4)
         Debug("punto en 3D" + str(punto), verbose)
         condition1 = is_in_front_of([0,0,1], [0,0,0], punto)
         condition2 = is_in_front_of(plusZ, centerOfProjection, punto)
         print condition1
         print condition2
+        """
         if (punto != None and condition1 and condition2):
             return solutions[s]
+        """
         Debug("=========", verbose)
     print "No se encontro ninguna solucion"
     return None
@@ -523,7 +531,7 @@ def Disambiguate(solutions, verbose = False):
         
         
    
-solutions = Possible_Solutions(Essentialmatrix, True)
+solutions = Possible_Solutions(Essentialmatrix)
 solution = Disambiguate(solutions, True)
 
 print "La solucion"
