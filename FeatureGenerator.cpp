@@ -7,12 +7,12 @@
 #include <cmath>
 #include <vector>
 #include <set>
-<<<<<<< HEAD
+
 #include <string>
 #include <sstream>
 =======
 #include <algorithm>
->>>>>>> ab8f12ce1250a62acf315c10a29e8b9d3a22c32f
+
 
 using namespace std;
 using namespace cv;

@@ -78,7 +78,7 @@ def Util_Print(B):
         for x in xrange(0, B.shape[0]):
             print "%.5f" % B[x],
         print
-<<<<<<< HEAD
+
     
 ###static point intersectionbtwlines(point p1,point p2,point p3,point p4){
 	###	point p2_p1=p2.sub(p1);
@@ -92,8 +92,6 @@ def Util_Print(B):
 	###	return p2_p1.multbyscalar(ua).add(p1);
 ###	}
 
-=======
->>>>>>> 6402fc6308af3dbbcb77dddba3d1b4f27d098fd9
 
 def aux_inter(p1, p2, p3, p4):
     p2_p1 = [p2[0] - p1[0], p2[1] - p1[1]]
@@ -492,6 +490,8 @@ def Disambiguate(solutions, verbose = False):
     Debug("proj1 = %f, %f, %f" % (proj1[0], proj1[1], proj1[2]), verbose)
     Debug("proj2 = %f, %f, %f" % (proj2[0], proj2[1], proj2[2]), verbose)
     for s in xrange(0, len(solutions)):
+        print "solucion posible nro. ", s
+        print solutions[s]
         R = solutions[s][0]
         t = solutions[s][1]
         p3 = t
