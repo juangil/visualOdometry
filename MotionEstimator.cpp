@@ -18,14 +18,12 @@ using namespace cv;
 void FillingMatrix(Mat &dest, Mat &orig, Mat &orig2){
     for(int i = 0; i < 3; i++)
         for(int j = 0; j < 3; j++)
-            dest.at<double>(i,j) = orig.at<double>(i,j);
-    
+            dest.at<double>(i,j) = orig.at<double>(i,j); 
     for(int i = 0; i < 3; i++)
         dest.at<double>(i, 3) = orig2.at<double>(i,0);
     return;
 }
 
-//Assuming that rotation component of P1 is an identity matrix and the traslation component is (0,0,0) 
 Mat TriangulatePoint(const Point2d &pt1, const Point2d &pt2, const Mat &P1, const Mat &P2)
 {
     Mat A(4,4,CV_64F);
@@ -90,7 +88,75 @@ bool IsValidSolution(const vector<pair<double, double> > &v1,const vector<pair<d
 }
 
 
-void MotionFromEightPointsAlgorithm(vector<pair<double, double> > v1, vector<pair<double, double> > v2){
+
+
+
+/* Normalization */
+
+
+pair<double, double> GetCentroid(const vector<pair<double, double> > &v1){
+    pair<double, double> ret;
+    ret.first = 0;
+    ret.second = 0;
+    for(int i = 0; i < v1.size(); i++){
+        ret.first += v1[i].first;
+        ret.second += v1[i].second;
+    }
+    ret.first = ret.first / v1.size();
+    ret.second = ret.second / v1.size();
+    return ret;
+}
+
+double GetScalingFactor(const vector<pair<double, double> > &v1, pair<double, double> &c){
+    double sum = 0.0;
+    for(int i = 0; i < v1.size(); i++){
+        double x = v1[i].first - c.first;
+        double y = v1[i].second - c.second;
+        sum += sqrt(x*x + y*y);
+    }
+    double k = ( sqrt(2) * v1.size()) / sum;
+    return k;
+}
+
+void Test(const vector<pair<double, double> > &v1){
+    cout<<"Testeando normalizacion"<<endl;
+    double sum = 0;
+    double sumx = 0;
+    double sumy = 0;
+    for(int i = 0; i < v1.size(); i++){
+        double x = v1[i].first;
+        double y = v1[i].second;
+        sum += sqrt(x*x + y*y);
+        sumx += x;
+        sumy += y;
+    }
+    cout<<"centroid :"<< sumx / v1.size() <<" "<< sumy / v1.size() << endl;
+    cout<<"mean distance to the origin :"<< sum / v1.size() <<endl;
+}
+
+Mat GetUnnormalizedEssentialMatrix(const Mat &E, const Mat &T1, const Mat &T2){
+    Mat Ret = T1.t() * E * T2;
+    return Ret;
+}
+
+
+Mat GetNormalizingTransformation(const vector<pair<double, double> > &v1){
+    pair<double, double> c = GetCentroid(v1);
+    double ScalingFactor = GetScalingFactor(v1, c);
+    Mat T =  Mat::zeros(3,3,CV_64F);
+    T.at<double>(0,0) = ScalingFactor;
+    T.at<double>(1,1) = ScalingFactor;
+    T.at<double>(0,2) = -c.first * ScalingFactor;
+    T.at<double>(1,2) = -c.second * ScalingFactor;
+    T.at<double>(2,2) = 1.0;
+    return T;
+}
+
+//
+
+void MotionFromEightPointsAlgorithm(vector<pair<double, double> > &v1, vector<pair<double, double> > &v2, const Mat &NT1, const Mat &NT2){
+    // v1 and v2 represent the correspondences (normalized).
+    // NT1 and NT2 are the normalizing transformations.
     if (v1.size() != v2.size()){
         fprintf(stderr, "Los tamanos de los vectores de correspondencias son diferentes");
         return ;
@@ -131,6 +197,12 @@ void MotionFromEightPointsAlgorithm(vector<pair<double, double> > v1, vector<pai
                           {sol.at<double>(0,3), sol.at<double>(0,4), sol.at<double>(0,5)},
                           {sol.at<double>(0,6), sol.at<double>(0,7), sol.at<double>(0,8)} };
     Mat EssentialMatrix = Mat(3, 3, CV_64FC1, tmpE);
+    
+    // Testing normalization
+    
+    EssentialMatrix = GetUnnormalizedEssentialMatrix(EssentialMatrix, NT1, NT2);
+    
+    
     //Recovering R,t
     SVD::compute(EssentialMatrix, w, u, vt, SVD::FULL_UV);
 //    cout<<"E =="<<endl;
@@ -222,6 +294,28 @@ int main(){
         q.second = d;
         v2.push_back(q);
     }
-    MotionFromEightPointsAlgorithm( v1, v2);
+    Mat T1 = GetNormalizingTransformation(v1);
+    Mat T2 = GetNormalizingTransformation(v2);
+    vector<pair<double, double> > v1normalized;
+    for(int i = 0; i < v1.size(); i++){
+        Mat vp = (Mat_<double>(3,1) << v1[i].first, v1[i].second, 1.0);
+        Mat nvp = T1 * vp;
+        pair<double, double> par;
+        par.first = nvp.at<double>(0,0);
+        par.second = nvp.at<double>(1,0);
+        v1normalized.push_back(par);
+    }
+    vector<pair<double, double> > v2normalized;
+    for(int i = 0; i < v2.size(); i++){
+        Mat vp = (Mat_<double>(3,1) << v2[i].first, v2[i].second, 1.0);
+        Mat nvp = T2 * vp;
+        pair<double, double> par;
+        par.first = nvp.at<double>(0,0);
+        par.second = nvp.at<double>(1,0);
+        v2normalized.push_back(par);
+    }
+    //Test(v1normalized);
+    //Test(v2normalized);
+    MotionFromEightPointsAlgorithm(v1normalized, v2normalized, T1, T2);
     return 0;
 }
