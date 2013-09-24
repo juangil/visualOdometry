@@ -38,9 +38,9 @@ Mat EightPointsAlgorithm(const vector<pair<double, double> > &v1, const vector<p
 //    cout<< vt <<endl;
 //    cout<<"===="<<endl;
     Mat sol = vt.row(8);
-    cout << "sol dims" <<endl;
-    cout<<sol.rows<<" "<<sol.cols<<endl;
-    double tmpE[3][3] = { {sol.at<double>(0,0), sol.at<double>(0,1), sol.at<double>(0,2)},
+//    cout << "sol dims" <<endl;
+//    cout<<sol.rows<<" "<<sol.cols<<endl;
+    double tmpE[3][3] = { {sol.at<double>(0,0), sol.at<double>(0,1), sol.at<double>(0,2)},    // This Method of inicializing matrixes seems to work wrong
                           {sol.at<double>(0,3), sol.at<double>(0,4), sol.at<double>(0,5)},
                           {sol.at<double>(0,6), sol.at<double>(0,7), sol.at<double>(0,8)} };
     Mat EssentialMatrix = Mat(3, 3, CV_64FC1, tmpE);

@@ -17,6 +17,8 @@ using namespace cv;
 
 #include "Normalizing.h"
 #include "MotionEstimator.h"
+#include "Matching.h"
+#include "Calibration.h"
 
 
 void randSet(int *indexes, int s,int n) {
@@ -91,6 +93,7 @@ Mat Ransac(const vector<pair<double, double> > &v1,const vector<pair<double, dou
     
     int indexes[s];
     double N = log(1-p)/log(1-pow(1 - e,s)); 
+    cout << "iteraciones iniciales" << N << endl;
     int iter=0;
     int bestSupp = 0;
     Mat best;
@@ -105,6 +108,7 @@ Mat Ransac(const vector<pair<double, double> > &v1,const vector<pair<double, dou
         iter++;
         double w = bestSupp/((double)v1normalized.size()); //current probability that a datapoint is inlier
         N = min(N, log(1-p)/log(1-pow(w,s))); //update to current maximum number of iterations
+        cout << "iteraciones " << N << endl;
     }
     cout << "Ransac Output for E" << endl;
     cout << "Final support size (amount of inliers):" << bestSupp << endl;
@@ -115,6 +119,15 @@ Mat Ransac(const vector<pair<double, double> > &v1,const vector<pair<double, dou
         cout << GetSampsonError(x, xp, best) << endl;
     }
     return best;    
+}
+
+void TestCalibration(){
+    Mat Kinv = GetInverseCalibrationMatrix();
+    cout << Kinv << endl;
+    Mat K = GetCalibrationMatrix();
+    cout << K << endl;
+    cout << "Test" << endl;
+    cout << Kinv * K << endl;
 }
 
 int main(){
@@ -137,6 +150,6 @@ int main(){
         q.second = d;
         v2.push_back(q);
     }
-    Mat RobustEssentialMatrix= Ransac(v1, v2, 0.99, 1.0, 0.5, 12, v1.size());  // TODO: Estimate experimentally the value of T
+    Mat RobustEssentialMatrix= Ransac(v1, v2, 0.99, 0.001, 0.5, 12, v1.size());  // TODO: Estimate experimentally the value of T */
     return 0;
 }
