@@ -27,3 +27,12 @@ Mat GetInverseCalibrationMatrix(){
     Mat Kinv = K.inv();
     return Kinv;
 }
+
+void TestCalibration(){
+    Mat Kinv = GetInverseCalibrationMatrix();
+    cout << Kinv << endl;
+    Mat K = GetCalibrationMatrix();
+    cout << K << endl;
+    cout << "Test" << endl;
+    cout << Kinv * K << endl;
+}
