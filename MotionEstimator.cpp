@@ -74,7 +74,7 @@ bool InFrontOf(const cv::Mat &X, const cv::Mat &P)
 }
 
 
-bool IsValidSolution(const vector<pair<double, double> > &v1,const vector<pair<double, double> > &v2, const Mat &P1,  const Mat &P2){
+bool IsValidSolution(const vector<pair<double, double> > &v1,const vector<pair<double, double> > &v2, const Mat &P1,  Mat &P2){
     int infront = 0;
     for(int  i = 0; i < v1.size(); i++){
         Point2d pt1 = Point2d(v1[i].first, v1[i].second);
@@ -191,8 +191,8 @@ void MotionFromEightPointsAlgorithm(vector<pair<double, double> > &v1, vector<pa
 //    cout<< vt <<endl;
 //    cout<<"===="<<endl;
     Mat sol = vt.row(8);
-    cout << "sol dims" <<endl;
-    cout<<sol.rows<<" "<<sol.cols<<endl;
+    //cout << "sol dims" <<endl;
+    //cout<<sol.rows<<" "<<sol.cols<<endl;
     double tmpE[3][3] = { {sol.at<double>(0,0), sol.at<double>(0,1), sol.at<double>(0,2)},
                           {sol.at<double>(0,3), sol.at<double>(0,4), sol.at<double>(0,5)},
                           {sol.at<double>(0,6), sol.at<double>(0,7), sol.at<double>(0,8)} };
@@ -271,7 +271,7 @@ void MotionFromEightPointsAlgorithm(vector<pair<double, double> > &v1, vector<pa
     if (IsValidSolution(v1, v2, P, Pref))
         vsols.push_back(P);
 
-    cout<< vsols.size() <<endl;
+    
 }
 
 int main(){
