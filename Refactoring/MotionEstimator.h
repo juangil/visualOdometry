@@ -27,40 +27,13 @@ Mat EightPointsAlgorithm(const vector<pair<double, double> > &v1, const vector<p
         A.at<double>(i, 8) = 1.0;
     }
     SVD::compute(A, w, u, vt, SVD::FULL_UV);
-    // Solving the homogeneous linear system in a least squares sense
-//    cout<<"A =="<<endl;
-//    cout<< A <<endl;
-//    cout<<"w =="<<endl;
-//    cout<< w <<endl;
-//    cout<<"u =="<<endl;
-//    cout<< u <<endl;
-//    cout<<"vt =="<<endl;
-//    cout<< vt <<endl;
-//    cout<<"===="<<endl;
     Mat sol = vt.row(8);
-//    cout << "sol dims" <<endl;
-//    cout<<sol.rows<<" "<<sol.cols<<endl;
     double tmpE[3][3] = { {sol.at<double>(0,0), sol.at<double>(0,1), sol.at<double>(0,2)},    // This Method of inicializing matrixes seems to work wrong
                           {sol.at<double>(0,3), sol.at<double>(0,4), sol.at<double>(0,5)},
                           {sol.at<double>(0,6), sol.at<double>(0,7), sol.at<double>(0,8)} };
     Mat EssentialMatrix = Mat(3, 3, CV_64FC1, tmpE);
-    
-    // Testing normalization
-    //EssentialMatrix = GetUnnormalizedEssentialMatrix(EssentialMatrix, NT1, NT2);
-    
-    
-    //Recovering R,t
-    SVD::compute(EssentialMatrix, w, u, vt, SVD::FULL_UV);
-//    cout<<"E =="<<endl;
-//    cout<< EssentialMatrix <<endl;
-//    cout<<"w =="<<endl;
-//    cout<< w <<endl;
-//    cout<<"u =="<<endl;
-//    cout<< u <<endl;
-//    cout<<"vt =="<<endl;
-//    cout<< vt <<endl;
-//    cout<<"===="<<endl;
     // Enforcing  the Internal Constraint 
+    SVD::compute(EssentialMatrix, w, u, vt, SVD::FULL_UV);
     w.at<double>(0, 2) = 0.0;
     Mat S = Mat::diag(w);
     return u * S * vt;

@@ -24,22 +24,6 @@ bool NonMaxSupression(Mat m, int x, int y, int nonMaxRadius){
 }
 
 
-//vector<pair<int,int> > GenFeature2(Mat img,int blockSize = 2, int apertureSize = 3, double k = 0.04, int nonMaxRadius = 2, int amount = 3000, int upperLimitNormalization = 10000){
-//    // se asume que img esta en escala de grises
-//    Mat dst = Mat::zeros( img.size(), CV_32FC1 );
-//    cornerHarris( img, dst, blockSize, apertureSize, k, BORDER_DEFAULT );
-//    Mat dst_norm;
-//    normalize( dst, dst_norm, 0, upperLimitNormalization, NORM_MINMAX, CV_32FC1, Mat() );
-//    vector<pair<int, int> > features;
-//    for( int i = 0; i < dst_norm.rows; i++ ){
-//        for( int j = 0; j < dst_norm.cols; j++ ){
-//            if ( NonMaxSupression(dst, i, j, nonMaxRadius)) 
-//                features.push_back(make_pair(i,j));
-//        }
-//    }
-//    return features;
-//}
-
 struct MyKeyPoint{
     pair<int,int> coord;
     float cornerness;
@@ -52,46 +36,71 @@ struct MyKeyPoint{
 };
 
 
-
-vector<pair<int,int> > GenFeature2(Mat img,int blockSize = 2, int apertureSize = 3, double k = 0.04, int nonMaxRadius = 2, int amount = 3000, int upperLimitNormalization = 10000){
+vector<pair<int,int> > GenFeature2(Mat img,int blockSize = 2, int apertureSize = 3, double k = 0.04, int nonMaxRadius = 7, int amount = 2000, int upperLimitNormalization = 10000){
     // se asume que img esta en escala de grises
     Mat dst = Mat::zeros( img.size(), CV_32FC1 );
     cornerHarris( img, dst, blockSize, apertureSize, k, BORDER_DEFAULT );
     Mat dst_norm;
     normalize( dst, dst_norm, 0, upperLimitNormalization, NORM_MINMAX, CV_32FC1, Mat() );
-    //cout << dst_norm << endl;
-    set<MyKeyPoint> data_structure;
-    MyKeyPoint worst;
-    int testcounter =0 ;
+    vector<MyKeyPoint> features;
     for( int i = 0; i < dst_norm.rows; i++ ){
         for( int j = 0; j < dst_norm.cols; j++ ){
             if ( NonMaxSupression(dst, i, j, nonMaxRadius)) {
                 float c = dst_norm.at<float>(i, j);
                 MyKeyPoint current(make_pair(i,j), c);
-                /*
-                if (data_structure.size() < amount){
-                    data_structure.insert(current);
-                }
-                else{
-                    set<MyKeyPoint>::iterator it = data_structure.end();
-                    --it;
-                    worst = *it;
-                    if (current.cornerness > worst.cornerness){
-                        data_structure.erase(worst);
-                        data_structure.insert(current);
-                    }
-                }*/
-                testcounter++;
-                data_structure.insert(current);
+                features.push_back(current);
             }
         }
     }
-    cout<< testcounter << endl;
-    vector<pair<int, int> > features;
-    for(set<MyKeyPoint>::iterator it = data_structure.begin(); it != data_structure.end(); ++it){
-        features.push_back((*it).coord);
-        //cout<<(*it).cornerness<<endl;
-    } 
-    return features;
+    sort(features.begin(), features.end());
+    vector<pair<int, int> > ret;
+    int limit = features.size();
+    if (amount < limit)
+       limit = amount;
+    for(int i = 0; i < limit; i++)
+        ret.push_back(features[i].coord);
+    return ret;
 }
+
+
+
+//vector<pair<int,int> > GenFeature2(Mat img,int blockSize = 2, int apertureSize = 3, double k = 0.04, int nonMaxRadius = 2, int amount = 3000, int upperLimitNormalization = 10000){
+//    // Hay problemas con el set porque no guarda repetidos
+//    // se asume que img esta en escala de grises
+//    Mat dst = Mat::zeros( img.size(), CV_32FC1 );
+//    cornerHarris( img, dst, blockSize, apertureSize, k, BORDER_DEFAULT );
+//    Mat dst_norm;
+//    normalize( dst, dst_norm, 0, upperLimitNormalization, NORM_MINMAX, CV_32FC1, Mat() );
+//    //cout << dst_norm << endl;
+//    set<MyKeyPoint> data_structure;
+//    MyKeyPoint worst;
+//    for( int i = 0; i < dst_norm.rows; i++ ){
+//        for( int j = 0; j < dst_norm.cols; j++ ){
+//            if ( NonMaxSupression(dst, i, j, nonMaxRadius)) {
+//                float c = dst_norm.at<float>(i, j);
+//                MyKeyPoint current(make_pair(i,j), c);
+//                /*
+//                if (data_structure.size() < amount){
+//                    data_structure.insert(current);
+//                }
+//                else{
+//                    set<MyKeyPoint>::iterator it = data_structure.end();
+//                    --it;
+//                    worst = *it;
+//                    if (current.cornerness > worst.cornerness){
+//                        data_structure.erase(worst);
+//                        data_structure.insert(current);
+//                    }
+//                }*/
+//                data_structure.insert(current);
+//            }
+//        }
+//    }
+//    vector<pair<int, int> > features;
+//    for(set<MyKeyPoint>::iterator it = data_structure.begin(); it != data_structure.end(); ++it){
+//        features.push_back((*it).coord);
+//        //cout<<(*it).cornerness<<endl;
+//    } 
+//    return features;
+//}
 

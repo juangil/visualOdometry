@@ -34,8 +34,7 @@ int supportSize(const vector<pair<double, double> > &v1,const vector<pair<double
     return support;
 }
 
-
-Mat Ransac(const vector<pair<double, double> > &v1,const vector<pair<double, double> > &v2, double p, double t, double e, int s, int m){
+Mat Ransac(const vector<pair<double, double> > &v1,const vector<pair<double, double> > &v2, double p, double t, double e, int s, int m, vector<int> &idx){
     /*
         v1, v2 correspondences vectors
         p -> desired probabilty of selecting merely inliers in at least one Ransac step
@@ -69,34 +68,48 @@ Mat Ransac(const vector<pair<double, double> > &v1,const vector<pair<double, dou
     }
     
     // End Normalization
-    
     int indexes[s];
-    double N = log(1-p)/log(1-pow(1 - e,s)); 
-    cout << "iteraciones iniciales" << N << endl;
+    //double N = log(1-p)/log(1-pow(1 - e,s));  this calculation isn't used by now
+    //cout << "iteraciones iniciales" << N << endl;
     int iter=0;
     int bestSupp = 0;
     Mat best;
-    while ( (iter < N) && (bestSupp < m) ) {
+    while ( (iter < 2000) && (bestSupp < m) ) {
         randSet(indexes, s, v1normalized.size());
         Mat EssentialMatrix = EightPointsAlgorithm(v1normalized, v2normalized, indexes, s);
         int supp = supportSize(v1normalized, v2normalized, t, EssentialMatrix);
         if (supp > bestSupp) {
+            cout << supp << endl;
             best = EssentialMatrix;
             bestSupp=supp;
         }
         iter++;
-        double w = bestSupp/((double)v1normalized.size()); //current probability that a datapoint is inlier
-        N = min(N, log(1-p)/log(1-pow(w,s))); //update to current maximum number of iterations
-        cout << "iteraciones " << N << endl;
+        //double w = bestSupp/((double)v1normalized.size()); //current probability that a datapoint is inlier
+        //N = min(N, log(1-p)/log(1-pow(w,s))); //update to current maximum number of iterations, this calculation isn't used by now.
     }
     cout << "Ransac Output for E" << endl;
     cout << "Final support size (amount of inliers):" << bestSupp << endl;
-    // TODO: we must compute again E from the inliers (only)
+    int inliers[bestSupp];
+    int counter = 0;
     for(int i = 0; i < v1normalized.size(); i++){
         Mat x = (Mat_<double>(3,1) << v1normalized[i].first, v1normalized[i].second, 1.0);
         Mat xp = (Mat_<double>(3,1) << v2normalized[i].first, v2normalized[i].second, 1.0);
-        cout << GetSampsonError(x, xp, best) << endl;
+        double error = GetSampsonError(x, xp, best);
+        if (fabs(error) < t){
+            inliers[counter++] = i;
+            idx.push_back(i);
+        }
     }
-    return best;    
+    // computing again E from inliers
+    Mat EssentialMatrix = EightPointsAlgorithm(v1normalized, v2normalized, inliers, bestSupp);
+    // Denormalizing
+    EssentialMatrix = T1.t() * EssentialMatrix * T2;
+    //re-enforcing the internal constraint
+    Mat w, u, vt;
+    SVD::compute(EssentialMatrix, w, u, vt, SVD::FULL_UV);
+    w.at<double>(0, 2) = 0.0;
+    Mat S = Mat::diag(w);
+    EssentialMatrix = u * S * vt;
+    return EssentialMatrix;    
 }
 
