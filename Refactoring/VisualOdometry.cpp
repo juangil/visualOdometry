@@ -14,6 +14,9 @@
 using namespace std;
 using namespace cv;
 
+#include "MonoVisoParameters.h"
+
+VisoMonoParam GLOBAL_PARAMETERS;
 
 #include "Calibration.h"
 #include "Normalizing.h"
@@ -22,6 +25,10 @@ using namespace cv;
 #include "MotionEstimator.h"
 #include "RobustEstimator.h"
 #include "disambiguating.h"
+
+
+
+
 
 
 string toString(int a){
@@ -90,73 +97,158 @@ void debugging2(Mat img1, Mat img2,  vector<pair<int,int> > &fts1,  vector<pair<
      return;
 }
 
+Mat PreviousImageGrayScale;
+vector<pair<int,int> > PreviousFeatures;
+Mat Pose;
 
-int main(int argc, char** argv){
-    Mat img1, img2, imgray1, imgray2;
-    if( argc != 3){
-     cout <<"Pasar el nombre de las dos imagenes" << endl;
-     return -1;
-    }
-    namedWindow("ventana",1);//
-    img1 = imread(argv[1], CV_LOAD_IMAGE_COLOR);
-    img2 = imread(argv[2], CV_LOAD_IMAGE_COLOR);
-    cvtColor( img1, imgray1, CV_BGR2GRAY );
-    cvtColor( img2, imgray2, CV_BGR2GRAY );
-    vector<pair<int,int> > fts1 = GenFeature2(imgray1);
-    vector<pair<int,int> > fts2 = GenFeature2(imgray2);
-    cout<<"Cantidad características imagen 1: "<<fts1.size()<<" Cantidad características imagen 2: "<<fts2.size()<<endl;
-    vector< pair<int,int> > correspondences = harrisFeatureMatcherMCC(imgray1, imgray2, fts1, fts2);
-    cout <<"Cantidad de correspondencias " << correspondences.size() << endl;
+
+void init(Mat img){
+    Pose = Mat::eye(4, 4, CV_64F);
+    PreviousImageGrayScale = img;
+    PreviousFeatures = GenFeature2(img);
+}
+
+
+bool compute(const Mat CurrentImageGrayScale, const Mat Kinverse, const int iteration){
+    vector<pair<int,int> > CurrentFeatures = GenFeature2(CurrentImageGrayScale);
+    vector< pair<int,int> > correspondences = harrisFeatureMatcherMCC(PreviousImageGrayScale, CurrentImageGrayScale, PreviousFeatures, CurrentFeatures);
+    cout << "Iteracion" << iteration << "Cantidad de correspondencias " << correspondences.size() << endl;
     vector< pair<double,double> > FirstImageFeatures;
     vector< pair<double,double> > SecondImageFeatures;
-    Mat Kinverse = GetInverseCalibrationMatrix();
     for(int i  = 0; i < correspondences.size(); i++){
-        pair<int,int> myft = fts1[correspondences[i].first];
+        pair<int,int> myft = PreviousFeatures[correspondences[i].first];
         Mat FtMatForm = (Mat_<double>(3,1) << (double)myft.first, (double)myft.second, 1.0);
         FtMatForm = Kinverse*FtMatForm;       
         pair<double,double> tmp = make_pair(FtMatForm.at<double>(0,0), FtMatForm.at<double>(1,0));
         FirstImageFeatures.push_back(tmp);
         
-        myft = fts2[correspondences[i].second];
+        myft = CurrentFeatures[correspondences[i].second];
         FtMatForm = (Mat_<double>(3,1) << (double)myft.first, (double)myft.second, 1.0);
         FtMatForm = Kinverse*FtMatForm;       
         tmp = make_pair(FtMatForm.at<double>(0,0), FtMatForm.at<double>(1,0));
         SecondImageFeatures.push_back(tmp);
     }
-    /* Entrada por archivo
-    int nc;
-    scanf("%d", &nc);
-    vector<pair<double, double> > v1, v2;
-    for(int i = 0; i < nc; i++){
-        double a,b;
-        scanf("%lf %lf", &a, &b);
-        pair<double, double> p;
-        p.first = a;
-        p.second = b;
-        v1.push_back(p);
-    }
-    for(int i = 0; i < nc; i++){
-        double c,d;
-        scanf("%lf %lf", &c, &d);
-        pair<double, double> q;
-        q.first = c;
-        q.second = d;
-        v2.push_back(q);
-    }*/
-    //Debugging
     vector<int> inliers_indexes;
-    Mat RobustEssentialMatrix= Ransac(FirstImageFeatures, SecondImageFeatures, 0.98, 0.001, 0.5, 11, FirstImageFeatures.size()/2, inliers_indexes);  // TODO: Estimate experimentally the value of T */
-    cout << "Final EssentialMatrix" << endl;
+    Mat RobustEssentialMatrix= Ransac(FirstImageFeatures, SecondImageFeatures, 0.98, 0.0025, 0.5, 11, FirstImageFeatures.size()/2, inliers_indexes);
+    cout << "Iteration" << iteration << "Final EssentialMatrix" << endl;
     cout << RobustEssentialMatrix << endl;
     Mat P = Mat::eye(3,4,CV_64F);
-    GetRotationAndTraslation(RobustEssentialMatrix, FirstImageFeatures, SecondImageFeatures, inliers_indexes, P);
-    cout << "Camera Matrix" << endl;
+    if (!GetRotationAndTraslation(RobustEssentialMatrix, FirstImageFeatures, SecondImageFeatures, inliers_indexes, P))
+        return false;
+    cout << "Iteration" << iteration << "Camera Matrix" << endl;
     cout << P << endl;
-    /*
-    cout << "inliers size" << inliers_indexes.size() << endl;
-    vector< pair<int,int> > inlier_correspondences;
-    for(int i = 0; i < inliers_indexes.size(); i++)
-        inlier_correspondences.push_back(correspondences[inliers_indexes[i]]);
-    debugging2(imgray1, imgray2, fts1, fts2, inlier_correspondences);*/
+    Mat Transformation = Mat::zeros(4,4, CV_64F);
+    Transformation.at<double>(3,3) = 1.0;
+    for(int i = 0 ; i < 3; i++)
+        for(int j = 0; j < 4; j++)
+            Transformation.at<double>(i, j) = P.at<double>(i, j);
+    Mat TransformationInverse = Transformation.inv();
+    Pose = Pose * TransformationInverse;
+    PreviousImageGrayScale = CurrentImageGrayScale;
+    PreviousFeatures = CurrentFeatures;
+    cerr << Pose.at<double>(0, 4) << Pose.at<double>(1, 4) << Pose.at<double>(2, 4) << endl;
+}
+
+
+Mat ReadGrayscaleImage(const char *p){
+    printf("%s", p);
+    Mat imggray;
+    Mat img = imread(p, CV_LOAD_IMAGE_COLOR);
+    cvtColor( img, imggray, CV_BGR2GRAY);
+    return imggray;
+}
+
+int main(int argc, char** argv){
+    if (argc != 3){
+        cout << "Pasar el path a las imagenes y el numero de estas";
+        return 1;
+    }
+    String path = argv[1];
+    String file = path + "/0.jpg";
+    Mat first = ReadGrayscaleImage(file.c_str());
+    init(first);
+    int total;
+    sscanf(argv[2],"%d",&total);
+    Mat Kinverse = GetInverseCalibrationMatrix();
+    for(int i = 2; i <= total; i+=2){
+        file = path + "/" + toString(i) + ".jpg";
+        Mat img = ReadGrayscaleImage(file.c_str());
+        compute(img, Kinverse, i);    // remember to handle the return value of this function
+    }
+    cout << "OK" << endl;
     return 0;
 }
+
+
+//int main(int argc, char** argv){
+//    Mat img1, img2, imgray1, imgray2;
+//    if( argc != 3){
+//     cout <<"Pasar el nombre de las dos imagenes" << endl;
+//     return -1;
+//    }
+//    init();
+//    namedWindow("ventana",1);//
+//    img1 = imread(argv[1], CV_LOAD_IMAGE_COLOR);
+//    img2 = imread(argv[2], CV_LOAD_IMAGE_COLOR);
+//    cvtColor( img1, imgray1, CV_BGR2GRAY);
+//    cvtColor( img2, imgray2, CV_BGR2GRAY);
+//    vector<pair<int,int> > fts1 = GenFeature2(imgray1);
+//    vector<pair<int,int> > fts2 = GenFeature2(imgray2);
+//    cout<<"Cantidad características imagen 1: "<<fts1.size()<<" Cantidad características imagen 2: "<<fts2.size()<<endl;
+//    vector< pair<int,int> > correspondences = harrisFeatureMatcherMCC(imgray1, imgray2, fts1, fts2);
+//    cout <<"Cantidad de correspondencias " << correspondences.size() << endl;
+//    vector< pair<double,double> > FirstImageFeatures;
+//    vector< pair<double,double> > SecondImageFeatures;
+//    Mat Kinverse = GetInverseCalibrationMatrix();
+//    for(int i  = 0; i < correspondences.size(); i++){
+//        pair<int,int> myft = fts1[correspondences[i].first];
+//        Mat FtMatForm = (Mat_<double>(3,1) << (double)myft.first, (double)myft.second, 1.0);
+//        FtMatForm = Kinverse*FtMatForm;       
+//        pair<double,double> tmp = make_pair(FtMatForm.at<double>(0,0), FtMatForm.at<double>(1,0));
+//        FirstImageFeatures.push_back(tmp);
+//        
+//        myft = fts2[correspondences[i].second];
+//        FtMatForm = (Mat_<double>(3,1) << (double)myft.first, (double)myft.second, 1.0);
+//        FtMatForm = Kinverse*FtMatForm;       
+//        tmp = make_pair(FtMatForm.at<double>(0,0), FtMatForm.at<double>(1,0));
+//        SecondImageFeatures.push_back(tmp);
+//    }
+//    /* Entrada por archivo
+//    int nc;
+//    scanf("%d", &nc);
+//    vector<pair<double, double> > v1, v2;
+//    for(int i = 0; i < nc; i++){
+//        double a,b;
+//        scanf("%lf %lf", &a, &b);
+//        pair<double, double> p;
+//        p.first = a;
+//        p.second = b;
+//        v1.push_back(p);
+//    }
+//    for(int i = 0; i < nc; i++){
+//        double c,d;
+//        scanf("%lf %lf", &c, &d);
+//        pair<double, double> q;
+//        q.first = c;
+//        q.second = d;
+//        v2.push_back(q);
+//    }*/
+//    //Debugging
+//    vector<int> inliers_indexes;
+//    Mat RobustEssentialMatrix= Ransac(FirstImageFeatures, SecondImageFeatures, 0.98, 0.0025, 0.5, 11, FirstImageFeatures.size()/2, inliers_indexes);  // TODO: Estimate experimentally the value of T */
+//    cout << "Final EssentialMatrix" << endl;
+//    cout << RobustEssentialMatrix << endl;
+//    Mat P = Mat::eye(3,4,CV_64F);
+//    GetRotationAndTraslation(RobustEssentialMatrix, FirstImageFeatures, SecondImageFeatures, inliers_indexes, P);
+//    cout << "Camera Matrix" << endl;
+//    cout << P << endl;
+//    Mat Pose
+//    
+//    /*
+//    cout << "inliers size" << inliers_indexes.size() << endl;
+//    vector< pair<int,int> > inlier_correspondences;
+//    for(int i = 0; i < inliers_indexes.size(); i++)
+//        inlier_correspondences.push_back(correspondences[inliers_indexes[i]]);
+//    debugging2(imgray1, imgray2, fts1, fts2, inlier_correspondences);*/
+//    return 0;
+//}
