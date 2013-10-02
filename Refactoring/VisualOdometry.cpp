@@ -158,6 +158,8 @@ Mat ReadGrayscaleImage(const char *p){
     return imggray;
 }
 
+/*
+
 int main(int argc, char** argv){
     if (argc != 3){
         cout << "Pasar el path a las imagenes y el numero de estas";
@@ -170,12 +172,60 @@ int main(int argc, char** argv){
     int total;
     sscanf(argv[2],"%d",&total);
     Mat Kinverse = GetInverseCalibrationMatrix();
-    for(int i = 2; i <= total; i+=2){
+    for(int i = 1; i <= total; i++){
         file = path + "/" + toString(i) + ".jpg";
         Mat img = ReadGrayscaleImage(file.c_str());
         compute(img, Kinverse, i);    // remember to handle the return value of this function
     }
     cout << "OK" << endl;
+    return 0;
+}*/
+
+int main(){
+    /* Entrada por archivo */
+    int nc;
+    scanf("%d", &nc);
+    vector<pair<double, double> > v1, v2;
+    for(int i = 0; i < nc; i++){
+        double a,b;
+        scanf("%lf %lf", &a, &b);
+        pair<double, double> p;
+        p.first = a;
+        p.second = b;
+        v1.push_back(p);
+    }
+    for(int i = 0; i < nc; i++){
+        double c,d;
+        scanf("%lf %lf", &c, &d);
+        pair<double, double> q;
+        q.first = c;
+        q.second = d;
+        v2.push_back(q);
+    }
+    Mat Kinverse = GetInverseCalibrationMatrix();
+    vector< pair<double,double> > FirstImageFeatures;
+    vector< pair<double,double> > SecondImageFeatures;
+    for(int i  = 0; i < v1.size(); i++){
+        pair<int,int> myft = v1[i];
+        Mat FtMatForm = (Mat_<double>(3,1) << (double)myft.first, (double)myft.second, 1.0);
+        FtMatForm = Kinverse*FtMatForm;       
+        pair<double,double> tmp = make_pair(FtMatForm.at<double>(0,0), FtMatForm.at<double>(1,0));
+        FirstImageFeatures.push_back(tmp);
+        
+        myft = v2[i];
+        FtMatForm = (Mat_<double>(3,1) << (double)myft.first, (double)myft.second, 1.0);
+        FtMatForm = Kinverse*FtMatForm;       
+        tmp = make_pair(FtMatForm.at<double>(0,0), FtMatForm.at<double>(1,0));
+        SecondImageFeatures.push_back(tmp);
+    }
+    vector<int> inliers_indexes;
+    Mat RobustEssentialMatrix= Ransac(FirstImageFeatures, SecondImageFeatures, 0.98, 0.00001, 0.5, 8, FirstImageFeatures.size()/2, inliers_indexes);
+    cout << "Essential Matrix" << endl;
+    cout << RobustEssentialMatrix << endl;
+    Mat P = Mat::eye(3,4,CV_64F);
+    GetRotationAndTraslation(RobustEssentialMatrix, FirstImageFeatures, SecondImageFeatures, inliers_indexes, P);
+    cout << "Camera Matrix" << endl;
+    cout << P << endl;
     return 0;
 }
 
@@ -213,26 +263,6 @@ int main(int argc, char** argv){
 //        tmp = make_pair(FtMatForm.at<double>(0,0), FtMatForm.at<double>(1,0));
 //        SecondImageFeatures.push_back(tmp);
 //    }
-//    /* Entrada por archivo
-//    int nc;
-//    scanf("%d", &nc);
-//    vector<pair<double, double> > v1, v2;
-//    for(int i = 0; i < nc; i++){
-//        double a,b;
-//        scanf("%lf %lf", &a, &b);
-//        pair<double, double> p;
-//        p.first = a;
-//        p.second = b;
-//        v1.push_back(p);
-//    }
-//    for(int i = 0; i < nc; i++){
-//        double c,d;
-//        scanf("%lf %lf", &c, &d);
-//        pair<double, double> q;
-//        q.first = c;
-//        q.second = d;
-//        v2.push_back(q);
-//    }*/
 //    //Debugging
 //    vector<int> inliers_indexes;
 //    Mat RobustEssentialMatrix= Ransac(FirstImageFeatures, SecondImageFeatures, 0.98, 0.0025, 0.5, 11, FirstImageFeatures.size()/2, inliers_indexes);  // TODO: Estimate experimentally the value of T */

@@ -12,10 +12,11 @@ void randSet(int *indexes, int s,int n) {
 }
 
 double GetSampsonError(const Mat &x, const Mat &xp, const Mat &E){
-    Mat tmp0 = x.t() * E * xp;
+    Mat tmp0 = xp.t() * E * x;
     double error = tmp0.at<double>(0,0);
-    Mat tmp1 = (E * xp);
-    Mat tmp2 = E.t() * x;
+    error = error * error;
+    Mat tmp1 = (E .t() * xp);
+    Mat tmp2 = E * x;
     error /= (pow(tmp1.at<double>(0,0), 2) + pow(tmp1.at<double>(1,0), 2) + pow(tmp2.at<double>(0,0), 2) + pow(tmp2.at<double>(1,0), 2));
     return error;
 }
@@ -74,7 +75,7 @@ Mat Ransac(const vector<pair<double, double> > &v1,const vector<pair<double, dou
     int iter=0;
     int bestSupp = 0;
     Mat best;
-    while ( (iter < 2000) && (bestSupp < m) ) {
+    while ( (iter < 2000) ){ //&& (bestSupp < m) ) {
         randSet(indexes, s, v1normalized.size());
         Mat EssentialMatrix = EightPointsAlgorithm(v1normalized, v2normalized, indexes, s);
         int supp = supportSize(v1normalized, v2normalized, t, EssentialMatrix);

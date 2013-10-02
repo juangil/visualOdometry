@@ -12,10 +12,10 @@ Mat EightPointsAlgorithm(const vector<pair<double, double> > &v1, const vector<p
     Mat w, u, vt;
     for(int i = 0; i < ncorrespondences; i++){
         int idx = indexes[i];
-        double u = v1[idx].first;
-        double v = v1[idx].second;
-        double up = v2[idx].first;
-        double vp = v2[idx].second;
+        double up = v1[idx].first;
+        double vp = v1[idx].second;
+        double u = v2[idx].first;
+        double v = v2[idx].second;
         A.at<double>(i, 0) = u*up;
         A.at<double>(i, 1) = u*vp; 
         A.at<double>(i, 2) = u;
