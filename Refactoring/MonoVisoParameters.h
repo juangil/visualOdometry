@@ -8,6 +8,6 @@ struct VisoMonoParam{
     double pitch;
     double height;
     double motionThreshold;
-    VisoMonoParam(double pp = 0.0, double hh = 1.0, double mm = 700.0){pitch = pp; height = hh; motionThreshold = mm;}
+    VisoMonoParam(double pp = 0.0, double hh = 1.0, double mm = 100.0){pitch = pp; height = hh; motionThreshold = mm;}
     ~VisoMonoParam() {}
 };

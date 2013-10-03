@@ -23,26 +23,12 @@ Mat TriangulatePoint(const Point2d &pt1, const Point2d &pt2, const Mat &P1, cons
     Mat A(4,4,CV_64F);
     Mat w, u, vt;
     
-	A.at<double>(0,0) = pt1.x*P1.at<double>(2,0) - P1.at<double>(0,0);
-	A.at<double>(0,1) = pt1.x*P1.at<double>(2,1) - P1.at<double>(0,1);
-	A.at<double>(0,2) = pt1.x*P1.at<double>(2,2) - P1.at<double>(0,2);
-	A.at<double>(0,3) = pt1.x*P1.at<double>(2,3) - P1.at<double>(0,3);
-
-	A.at<double>(1,0) = pt1.y*P1.at<double>(2,0) - P1.at<double>(1,0);
-	A.at<double>(1,1) = pt1.y*P1.at<double>(2,1) - P1.at<double>(1,1);
-	A.at<double>(1,2) = pt1.y*P1.at<double>(2,2) - P1.at<double>(1,2);
-	A.at<double>(1,3) = pt1.y*P1.at<double>(2,3) - P1.at<double>(1,3);
-
-	A.at<double>(2,0) = pt2.x*P2.at<double>(2,0) - P2.at<double>(0,0);
-	A.at<double>(2,1) = pt2.x*P2.at<double>(2,1) - P2.at<double>(0,1);
-	A.at<double>(2,2) = pt2.x*P2.at<double>(2,2) - P2.at<double>(0,2);
-	A.at<double>(2,3) = pt2.x*P2.at<double>(2,3) - P2.at<double>(0,3);
-
-	A.at<double>(3,0) = pt2.y*P2.at<double>(2,0) - P2.at<double>(1,0);
-	A.at<double>(3,1) = pt2.y*P2.at<double>(2,1) - P2.at<double>(1,1);
-	A.at<double>(3,2) = pt2.y*P2.at<double>(2,2) - P2.at<double>(1,2);
-	A.at<double>(3,3) = pt2.y*P2.at<double>(2,3) - P2.at<double>(1,3);
-
+    for(int i = 0; i < 4; i++){
+        A.at<double>(0,i) = pt1.x*P1.at<double>(2,i) - P1.at<double>(0,i);
+        A.at<double>(1,i) = pt1.y*P1.at<double>(2,i) - P1.at<double>(1,i);
+        A.at<double>(2,i) = pt2.x*P2.at<double>(2,i) - P2.at<double>(0,i);
+        A.at<double>(3,i) = pt2.y*P2.at<double>(2,i) - P2.at<double>(1,i);
+    } 
     SVD::compute(A, w, u, vt, SVD::FULL_UV);
 	//SVD svd(A); another way to calculate SVD
 
@@ -70,7 +56,7 @@ bool InFrontOf(const cv::Mat &X, const cv::Mat &P)
 
 void IsValidSolution(const vector<pair<double, double> > &v1,const vector<pair<double, double> > &v2, const vector<int> &idx, const Mat &P1,  Mat &P2,
     vector<Mat> &inliers){
-    //inliers.clear();
+    inliers.clear();
     for(int  i = 0; i < idx.size(); i++){
         int index = idx[i];
         Point2d pt1 = Point2d(v1[index].first, v1[index].second);
@@ -92,14 +78,19 @@ bool GetRotationAndTraslation(Mat E, const vector<pair<double, double> > &v1, co
                           {-1,0,0},
                           {0,0,1} };
     Mat W = Mat(3, 3, CV_64FC1, tmpW);
+    double tmpZ[3][3] = { {0,1,0},
+                          {-1,0,0},
+                          {0,0,0} };
+    Mat Z = Mat(3, 3, CV_64FC1, tmpZ);
     Mat S = Mat::diag(w);
     Mat Rot1 = u * W * vt;   //These matrixes should be rotation matrixes.
-    Mat Rot2 = u * W.t() * vt; 
+    Mat Rot2 = u * W.t() * vt;
+    
     double det1 = determinant(Rot1);
     double det2 = determinant(Rot2);
     if(det1 < 0) Rot1 = -1*Rot1;
     if(det2 < 0) Rot2 = -1*Rot2;
-    Mat T = u * W * S * u.t(); // This matrix should be a skew matrix.
+    Mat T = u * Z * u.t(); // This matrix should be a skew matrix.
     Mat T1 = (Mat_<double>(3,1) << T.at<double>(2,1), T.at<double>(0,2), T.at<double>(1,0));
     Mat T2 = -1*T1;
     
@@ -121,12 +112,15 @@ bool GetRotationAndTraslation(Mat E, const vector<pair<double, double> > &v1, co
     for(int i = 0; i < 4; i++){
         Mat P = Ps[i];
         vector<Mat> inliers;
-        IsValidSolution(v1, v2, idx, P, Pref, inliers);
+        IsValidSolution(v1, v2, idx, Pref, P, inliers);
         if (inliers.size() > Xbest.size()){
             bestP = P;
             Xbest = inliers;
         }
     }
+    
+    cout << "Best P" << endl;
+    cout <<  bestP << endl;
     
     //normalizing 3D points
     
@@ -148,36 +142,35 @@ bool GetRotationAndTraslation(Mat E, const vector<pair<double, double> > &v1, co
         printf("at least 10 points are necessary to continue");
         return false;
     }
-    
     sort(Xbest.begin(), Xbest.end(), CompareTriangulatedPoints); //The efficiency of this operation can be improved
     
     Mat Median = Xbest[Xbest.size() / 2];
     double DistMedian = fabs(Median.at<double>(0,0)) + fabs(Median.at<double>(1,0)) + fabs(Median.at<double>(2,0));
 
+    
     if (DistMedian > GLOBAL_PARAMETERS.motionThreshold){
        printf("Little Motion\n");   
        return true;
     }
 
+    
     Mat YandZ = Mat::zeros(2, Xbest.size(), CV_64F);
 
     for(int i = 0; i < Xbest.size(); i++){
        YandZ.at<double>(0, i) = Xbest[i].at<double>(1,0);
        YandZ.at<double>(1, i) = Xbest[i].at<double>(2,0);  
     }
-
-    Mat Rot = (Mat_<double>(1,2) << cos(-GLOBAL_PARAMETERS.pitch), sin(-GLOBAL_PARAMETERS.pitch));
     
-    cout << "Rot:" << Rot << endl;
+    Mat Rot = (Mat_<double>(1,2) << cos(-GLOBAL_PARAMETERS.pitch), sin(-GLOBAL_PARAMETERS.pitch));
 
     Mat RotY = Rot * YandZ;
-    
-    cout << "Roty:" << RotY << endl;
 
     double sigma = DistMedian/ (GLOBAL_PARAMETERS.motionThreshold * 0.5);   // own change: variable denominator
     double weight = 1.0/(2.0*sigma*sigma);
     double best_sum = 0;
     int best_idx = 0;
+    
+    cout << weight << endl;
 
     for(int i = 0; i < Xbest.size(); i++){
         if (RotY.at<double>(0,i) < DistMedian / GLOBAL_PARAMETERS.motionThreshold)  //?

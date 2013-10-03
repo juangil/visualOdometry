@@ -110,7 +110,7 @@ void init(Mat img){
 
 
 bool compute(const Mat CurrentImageGrayScale, const Mat Kinverse, const int iteration){
-    vector<pair<int,int> > CurrentFeatures = GenFeature2(CurrentImageGrayScale);
+    vector< pair<int,int> > CurrentFeatures = GenFeature2(CurrentImageGrayScale);
     vector< pair<int,int> > correspondences = harrisFeatureMatcherMCC(PreviousImageGrayScale, CurrentImageGrayScale, PreviousFeatures, CurrentFeatures);
     cout << "Iteracion" << iteration << "Cantidad de correspondencias " << correspondences.size() << endl;
     vector< pair<double,double> > FirstImageFeatures;
@@ -129,7 +129,7 @@ bool compute(const Mat CurrentImageGrayScale, const Mat Kinverse, const int iter
         SecondImageFeatures.push_back(tmp);
     }
     vector<int> inliers_indexes;
-    Mat RobustEssentialMatrix= Ransac(FirstImageFeatures, SecondImageFeatures, 0.98, 0.0025, 0.5, 11, FirstImageFeatures.size()/2, inliers_indexes);
+    Mat RobustEssentialMatrix= Ransac(FirstImageFeatures, SecondImageFeatures, 0.98, 0.00001, 0.5, 8, FirstImageFeatures.size()/2, inliers_indexes);
     cout << "Iteration" << iteration << "Final EssentialMatrix" << endl;
     cout << RobustEssentialMatrix << endl;
     Mat P = Mat::eye(3,4,CV_64F);
@@ -158,7 +158,7 @@ Mat ReadGrayscaleImage(const char *p){
     return imggray;
 }
 
-/*
+
 
 int main(int argc, char** argv){
     if (argc != 3){
@@ -179,9 +179,9 @@ int main(int argc, char** argv){
     }
     cout << "OK" << endl;
     return 0;
-}*/
+}
 
-int main(){
+int mainDebug(){
     /* Entrada por archivo */
     int nc;
     scanf("%d", &nc);
@@ -203,12 +203,14 @@ int main(){
         v2.push_back(q);
     }
     Mat Kinverse = GetInverseCalibrationMatrix();
+    Mat K = GetCalibrationMatrix();
     vector< pair<double,double> > FirstImageFeatures;
     vector< pair<double,double> > SecondImageFeatures;
+    Pose = Mat::eye(4, 4, CV_64F);
     for(int i  = 0; i < v1.size(); i++){
         pair<int,int> myft = v1[i];
         Mat FtMatForm = (Mat_<double>(3,1) << (double)myft.first, (double)myft.second, 1.0);
-        FtMatForm = Kinverse*FtMatForm;       
+        FtMatForm = Kinverse*FtMatForm;      
         pair<double,double> tmp = make_pair(FtMatForm.at<double>(0,0), FtMatForm.at<double>(1,0));
         FirstImageFeatures.push_back(tmp);
         
@@ -221,11 +223,42 @@ int main(){
     vector<int> inliers_indexes;
     Mat RobustEssentialMatrix= Ransac(FirstImageFeatures, SecondImageFeatures, 0.98, 0.00001, 0.5, 8, FirstImageFeatures.size()/2, inliers_indexes);
     cout << "Essential Matrix" << endl;
+    //RobustEssentialMatrix = K.t() * RobustEssentialMatrix * K;
+    
+    
+    Mat w, u, vt;
+    SVD::compute(RobustEssentialMatrix, w, u, vt, SVD::FULL_UV);
+    w.at<double>(0, 2) = 0.0;
+    Mat S = Mat::diag(w);
+    RobustEssentialMatrix = u * S * vt;
+    
     cout << RobustEssentialMatrix << endl;
+    
+    //Debugging
+    
+    /*
+   double TestE[3][3] = { {-0.0022604,   -5.5544313,   -0.5349702}, 
+                          {5.5467682,    0.0026827,   -0.1939585}, 
+                          {0.5235505,    0.1917261,   0.0001368 } };
+                          
+                          
+    Mat TE = Mat(3, 3, CV_64FC1, TestE);*/
+   
+
+    
     Mat P = Mat::eye(3,4,CV_64F);
     GetRotationAndTraslation(RobustEssentialMatrix, FirstImageFeatures, SecondImageFeatures, inliers_indexes, P);
     cout << "Camera Matrix" << endl;
     cout << P << endl;
+    Mat Transformation = Mat::zeros(4,4, CV_64F);
+    Transformation.at<double>(3,3) = 1.0;
+    for(int i = 0 ; i < 3; i++)
+        for(int j = 0; j < 4; j++)
+            Transformation.at<double>(i, j) = P.at<double>(i, j);
+    Mat TransformationInverse = Transformation.inv();
+    Pose = Pose * TransformationInverse;
+    cout << "Pose" << endl;
+    cout << Pose << endl;
     return 0;
 }
 
