@@ -13,7 +13,7 @@ Matching Parameters:
 
 /*Matching*/
 
-int SumofAbsoluteDifferences(Mat img1, Mat img2, pair<int,int> f1, pair<int,int> f2, int w = 10){
+int SumofAbsoluteDifferences(Mat img1, Mat img2, pair<int,int> f1, pair<int,int> f2, int w = 22){
     if ( (img1.rows != img2.rows ) || (img1.cols != img2.cols)){
         printf("Las dimensiones de las imagenes no coinciden");
         return 0;
@@ -38,7 +38,7 @@ int SumofAbsoluteDifferences(Mat img1, Mat img2, pair<int,int> f1, pair<int,int>
 
      
 
-void DeterminingFavorites(Mat img1, Mat img2, vector< pair<int,int> > &f1, vector< pair<int,int> > &f2, int *favorites, int delta = 15){
+void DeterminingFavorites(Mat img1, Mat img2, vector< pair<int,int> > &f1, vector< pair<int,int> > &f2, int *favorites, int delta = 50){
     for(int i = 0; i < f1.size(); i++){
         pair<int, int> current1 = f1[i];
         int menor = MAX_INT;

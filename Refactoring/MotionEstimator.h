@@ -16,6 +16,9 @@ Mat EightPointsAlgorithm(const vector<pair<double, double> > &v1, const vector<p
         double vp = v1[idx].second;
         double u = v2[idx].first;
         double v = v2[idx].second;
+        
+        //printf("idx: %d ---- up:%.6lf , vp: %.6lf, u:%.6lf , v: %.6lf \n", idx, up, vp, u, v);
+        
         A.at<double>(i, 0) = u*up;
         A.at<double>(i, 1) = u*vp; 
         A.at<double>(i, 2) = u;
@@ -26,6 +29,10 @@ Mat EightPointsAlgorithm(const vector<pair<double, double> > &v1, const vector<p
         A.at<double>(i, 7) = vp;
         A.at<double>(i, 8) = 1.0;
     }
+    
+//    cout << "A matrix"  << endl;
+//    cout << A << endl;
+    
     SVD::compute(A, w, u, vt, SVD::FULL_UV);
     Mat sol = vt.row(8);
     double tmpE[3][3] = { {sol.at<double>(0,0), sol.at<double>(0,1), sol.at<double>(0,2)},    // This Method of inicializing matrixes seems to work wrong

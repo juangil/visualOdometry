@@ -14,15 +14,16 @@
 
 
 Mat GetCalibrationMatrix(){
-    /* calibracion Dataset Karlsruhe
+    /* calibracion Dataset Karlsruhe */
     double fx = 645.24;
     double fy = 645.24;
     double cx = 635.96;
-    double cy = 194.13; */
+    double cy = 194.13;
+    /*
     double fx = 923.5295;
     double fy = 922.2418;
     double cx = 507.2222;
-    double cy = 383.5822;             
+    double cy = 383.5822;*/             
     Mat K = (Mat_<double>(3,3) << fx, 0.0, cx, 0.0, fy, cy, 0.0, 0.0, 1.0);
     return K;
 }

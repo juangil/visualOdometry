@@ -36,7 +36,7 @@ struct MyKeyPoint{
 };
 
 
-vector<pair<int,int> > GenFeature2(Mat img,int blockSize = 2, int apertureSize = 3, double k = 0.04, int nonMaxRadius = 7, int amount = 2000, int upperLimitNormalization = 10000){
+vector<pair<int,int> > GenFeature2(Mat img,int blockSize = 2, int apertureSize = 3, double k = 0.04, int nonMaxRadius = 11, int amount = 2000, int upperLimitNormalization = 10000){
     // se asume que img esta en escala de grises
     Mat dst = Mat::zeros( img.size(), CV_32FC1 );
     cornerHarris( img, dst, blockSize, apertureSize, k, BORDER_DEFAULT );

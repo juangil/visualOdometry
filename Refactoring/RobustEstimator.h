@@ -17,7 +17,9 @@ double GetSampsonError(const Mat &x, const Mat &xp, const Mat &E){
     error = error * error;
     Mat tmp1 = (E .t() * xp);
     Mat tmp2 = E * x;
-    error /= (pow(tmp1.at<double>(0,0), 2) + pow(tmp1.at<double>(1,0), 2) + pow(tmp2.at<double>(0,0), 2) + pow(tmp2.at<double>(1,0), 2));
+    double den = tmp1.at<double>(0,0) * tmp1.at<double>(0,0) + tmp1.at<double>(1,0) * tmp1.at<double>(1,0) + tmp2.at<double>(0,0) * tmp2.at<double>(0,0) + tmp2.at<double>(1,0) * tmp2.at<double>(1,0);
+    error = error / den;
+    //error /= (pow(tmp1.at<double>(0,0), 2) + pow(tmp1.at<double>(1,0), 2) + pow(tmp2.at<double>(0,0), 2) + pow(tmp2.at<double>(1,0), 2));
     return error;
 }
 
@@ -35,14 +37,12 @@ int supportSize(const vector<pair<double, double> > &v1,const vector<pair<double
     return support;
 }
 
-Mat Ransac(const vector<pair<double, double> > &v1,const vector<pair<double, double> > &v2, double p, double t, double e, int s, int m, vector<int> &idx){
+Mat Ransac(const vector<pair<double, double> > &v1,const vector<pair<double, double> > &v2, double t, int s, int m, vector<int> &idx){
     /*
         v1, v2 correspondences vectors
-        p -> desired probabilty of selecting merely inliers in at least one Ransac step
         t -> Measure to test if a correspondence is an inlier or an outlier(Sampson Error)
-        e -> Probability of selecting outliers given a model
         s -> minimal dataset to compute a model
-        m -> minimum acceptable for the number of inliers
+        m -> ransac iterations
     */
     
     //Normalizing Input
@@ -75,9 +75,25 @@ Mat Ransac(const vector<pair<double, double> > &v1,const vector<pair<double, dou
     int iter=0;
     int bestSupp = 0;
     Mat best;
-    while ( (iter < 2000) ){ //&& (bestSupp < m) ) {
+    srand(0);
+    while (iter < m){
+    
         randSet(indexes, s, v1normalized.size());
+        
+        /*
+        cout << "Start idx" << endl;
+        for(int i = 0; i < s; i++)
+            cout << indexes[i] << " ";
+        cout << endl << "End idx" << endl;*/
+        
         Mat EssentialMatrix = EightPointsAlgorithm(v1normalized, v2normalized, indexes, s);
+        
+        /*
+        cout << "Essential Matrix" << endl;
+        cout << EssentialMatrix << endl;
+        namedWindow("correspondences");
+        waitKey(0);*/
+        
         int supp = supportSize(v1normalized, v2normalized, t, EssentialMatrix);
         if (supp > bestSupp) {
             cout << supp << endl;
@@ -88,8 +104,9 @@ Mat Ransac(const vector<pair<double, double> > &v1,const vector<pair<double, dou
         //double w = bestSupp/((double)v1normalized.size()); //current probability that a datapoint is inlier
         //N = min(N, log(1-p)/log(1-pow(w,s))); //update to current maximum number of iterations, this calculation isn't used by now.
     }
-    cout << "Ransac Output for E" << endl;
-    cout << "Final support size (amount of inliers):" << bestSupp << endl;
+    
+    cout << "inliers" << endl;
+    
     int inliers[bestSupp];
     int counter = 0;
     for(int i = 0; i < v1normalized.size(); i++){
@@ -99,10 +116,20 @@ Mat Ransac(const vector<pair<double, double> > &v1,const vector<pair<double, dou
         if (fabs(error) < t){
             inliers[counter++] = i;
             idx.push_back(i);
+            cout << i << " ";
         }
     }
     // computing again E from inliers
     Mat EssentialMatrix = EightPointsAlgorithm(v1normalized, v2normalized, inliers, bestSupp);
+    
+    
+    cout << "Ransac Output for E" << endl;
+    cout << EssentialMatrix << endl;
+    cout << "Final support size (amount of inliers):" << bestSupp << endl;
+    cout << "up:" << v1[0].first << " vp:" << v1[0].second << " uc: " << v2[0].first << "vc: " << v2[0].second << endl;
+    namedWindow("correspondences");
+    waitKey(0);
+ 
     // Denormalizing
     EssentialMatrix = T1.t() * EssentialMatrix * T2;
     //re-enforcing the internal constraint
